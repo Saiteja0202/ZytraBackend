@@ -1,6 +1,7 @@
 package com.ecommerce.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -78,5 +79,7 @@ public class UsersController {
 	{
 		return userService.updatePassword(userId,updatePasswordDetails);
 	}
+	
+	
 
 }

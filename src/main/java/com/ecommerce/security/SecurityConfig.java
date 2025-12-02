@@ -46,7 +46,7 @@ public class SecurityConfig {
             .cors(withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/user/registration", "/admin/registration", "/user/login","/admin/login","/swagger-ui/**","/v3/api-docs/**"
-                		,"/user/get-all-cities/**","/user/generate-otp","/user/forgot-password/verify-otp",
+                		,"/user/generate-otp","/user/forgot-password/verify-otp","/all-products",
                 		"/user/forgot-username/verify-otp","/user/update-forgot-password/**").permitAll()
                 .requestMatchers("/user/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")

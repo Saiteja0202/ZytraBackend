@@ -1,10 +1,7 @@
 package com.ecommerce.entities;
 
-import java.rmi.registry.LocateRegistry;
 import java.time.LocalDateTime;
-
 import com.ecommerce.enums.DiscountTypes;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -12,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -22,9 +18,6 @@ public class Discounts {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int discountId;
-
-	@NotNull(message = "Product Id is required")
-	private int productId;
 
 	@Enumerated(EnumType.STRING)
 	private DiscountTypes discountType;
@@ -44,16 +37,15 @@ public class Discounts {
 		this.discountId = discountId;
 	}
 
-	public int getProductId() {
-		return productId;
-	}
 
-	public void setProductId(int productId) {
-		this.productId = productId;
-	}
 
 	public String getDiscountType() {
 		return discountType != null ? discountType.name() : null;
+	}
+	
+	public DiscountTypes getDiscountTypeEnum()
+	{
+		return discountType;
 	}
 
 	public void setDiscountType(DiscountTypes discountType) {
@@ -84,12 +76,11 @@ public class Discounts {
 		this.endDate = endDate;
 	}
 
-	public Discounts(int discountId, @NotNull(message = "Product Id is required") int productId,
+	public Discounts(int discountId,
 			DiscountTypes discountType, @NotNull(message = "Discount Value is required") int discountValue,
 			LocalDateTime startDate, LocalDateTime endDate) {
 		super();
 		this.discountId = discountId;
-		this.productId = productId;
 		this.discountType = discountType;
 		this.discountValue = discountValue;
 		this.startDate = startDate;
