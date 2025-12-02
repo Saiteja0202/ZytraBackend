@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.ecommerce.dtos.LoginDetails;
@@ -26,14 +25,13 @@ public class AdminServiceImplementation implements AdminService {
 	private final UsersRepository usersRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
-	private final JavaMailSender javaMailSender;
+
 
 	public AdminServiceImplementation(AdminRepository adminRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-			JavaMailSender javaMailSender, UsersRepository usersRepository) {
+			 UsersRepository usersRepository) {
 		this.adminRepository = adminRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtUtil = jwtUtil;
-		this.javaMailSender = javaMailSender;
 		this.usersRepository = usersRepository;
 	}
 

@@ -27,6 +27,8 @@ public class Inventory {
 	@NotBlank(message="Warehouse Location is required")
 	private String wareHouseLocation;
 	
+	@NotNull(message="Seller Id is required")
+	private int sellerId;
 	
 	private LocalDateTime lastUpdatedAt;
 
@@ -38,6 +40,16 @@ public class Inventory {
 
 	public void setInventoryId(int inventoryId) {
 		this.inventoryId = inventoryId;
+	}
+
+
+	public int getSellerId() {
+		return sellerId;
+	}
+
+
+	public void setSellerId(int sellerId) {
+		this.sellerId = sellerId;
 	}
 
 
@@ -81,15 +93,17 @@ public class Inventory {
 	}
 
 
+
 	public Inventory(int inventoryId, @NotNull(message = "Product Id in required") int productId,
 			@NotNull(message = "Stock Quantity is required") int stockQuantity,
 			@NotBlank(message = "Warehouse Location is required") String wareHouseLocation,
-			LocalDateTime lastUpdatedAt) {
+			@NotNull(message = "Seller Id is required") int sellerId, LocalDateTime lastUpdatedAt) {
 		super();
 		this.inventoryId = inventoryId;
 		this.productId = productId;
 		this.stockQuantity = stockQuantity;
 		this.wareHouseLocation = wareHouseLocation;
+		this.sellerId = sellerId;
 		this.lastUpdatedAt = lastUpdatedAt;
 	}
 

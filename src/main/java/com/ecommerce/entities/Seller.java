@@ -109,6 +109,11 @@ public class Seller {
 	public String getSellerStatus() {
 		return sellerStatus != null ? sellerStatus.name() : null;
 	}
+	
+	public SellerStatus getSellerStatusEnum()
+	{
+		return sellerStatus;
+	}
 
 	public void setSellerStatus(SellerStatus sellerStatus) {
 		this.sellerStatus = sellerStatus;

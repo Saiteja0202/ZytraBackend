@@ -1,16 +1,21 @@
 package com.ecommerce.controller;
 
-import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ecommerce.entities.Brands;
 import com.ecommerce.entities.Categories;
+import com.ecommerce.entities.Discounts;
+import com.ecommerce.entities.Inventory;
+import com.ecommerce.entities.Products;
+import com.ecommerce.entities.Seller;
 import com.ecommerce.entities.SubCategory;
 import com.ecommerce.service.InventoryService;
 
@@ -37,12 +42,100 @@ public class InventoryController {
 		return inventoryService.addNewSubCategory(adminId,subCategory);
 	}
 	
+	@PostMapping("/add-brand/{adminId}")
+	public ResponseEntity<String> addNewBrand(@PathVariable int adminId, @RequestBody Brands brands)
+	{
+		return inventoryService.addNewBrand(adminId, brands);
+	}
+	
 	@GetMapping("/get-all-categories/{adminId}")
 	public ResponseEntity<?> getAllCategories(@PathVariable int adminId)
 	{
 		return inventoryService.getAllCategories(adminId);
 	}
 	
+	@GetMapping("/get-all-subcategories/{adminId}")
+	public ResponseEntity<?> getAllSubCategories(@PathVariable int adminId)
+	{
+		return inventoryService.getAllSubCategories(adminId);
+	}
 	
-
+	@GetMapping("/get-all-brands/{adminId}")
+	public ResponseEntity<?> getAllBrands(@PathVariable int adminId)
+	{
+		return inventoryService.getAllBrands(adminId);
+	}
+	
+	@PostMapping("/add-seller/{adminId}")
+	public ResponseEntity<String> addNewSeller(@PathVariable int adminId,@RequestBody Seller seller)
+	{
+		return inventoryService.addNewSeller(adminId,seller);
+	}
+	
+	@GetMapping("/get-all-sellers/{adminId}")
+	public ResponseEntity<?> getAllSellers(@PathVariable int adminId)
+	{
+		return inventoryService.getAllSellers(adminId);
+	}
+	
+	@PostMapping("/add-discount/{adminId}")
+	public ResponseEntity<String> addNewDiscount(@PathVariable int adminId, @RequestBody Discounts discounts)
+	{
+		return inventoryService.addNewDiscount(adminId, discounts);
+	}
+	
+	@GetMapping("/get-all-discounts/{adminId}")
+	public ResponseEntity<?> getAllDiscounts(@PathVariable int adminId)
+	{
+		return inventoryService.getAllDiscounts(adminId);
+	}
+	
+	@PostMapping("/add-new-product/{adminId}")
+	public ResponseEntity<String> addNewProduct(@PathVariable int adminId, @RequestBody Products products)
+	{
+		return inventoryService.addNewProduct(adminId,products);
+	}
+	
+	@GetMapping("/get-all-products/{adminId}")
+	public ResponseEntity<?> getAllProducts(@PathVariable int adminId)
+	{
+		return inventoryService.getAllProducts(adminId);
+	}
+	
+	@PutMapping("/activate-seller/{adminId}/{sellerId}")
+	public ResponseEntity<String> activateSeller(@PathVariable int adminId, @PathVariable int sellerId)
+	{
+		return inventoryService.activateSeller(adminId, sellerId);
+	}
+	
+	@PutMapping("/deactivate-seller/{adminId}/{sellerId}")
+	public ResponseEntity<String> deactivateSeller(@PathVariable int adminId, @PathVariable int sellerId)
+	{
+		return inventoryService.deactivateSeller(adminId, sellerId);
+	}
+	
+	@PutMapping("/update-product-details/{adminId}/{productId}")
+	public ResponseEntity<String> updateProductDetails(@PathVariable int adminId, @PathVariable int productId,
+			@RequestBody Products products)
+	{
+		return inventoryService.updateProductDetails(adminId,productId, products);
+	}
+	
+	@PostMapping("/add-inventory/{adminId}")
+	public ResponseEntity<String> addProductInInventroy(@PathVariable int adminId, @RequestBody Inventory inventory)
+	{
+		return inventoryService.addProductInInventroy(adminId, inventory);
+	}
+	
+	@GetMapping("/get-all-inventory/{adminId}")
+	public ResponseEntity<?> getAllInventory(@PathVariable int adminId)
+	{
+		return inventoryService.getAllInventory(adminId);
+	}
+	
+	@PutMapping("/update-inventory/{adminId}/{inventoryId}")
+	public ResponseEntity<String> updateInventory(@PathVariable int adminId ,@PathVariable int inventoryId, @RequestBody Inventory inventory)
+	{
+		return inventoryService.updateInventory(adminId,inventoryId,inventory);
+	}
 }
