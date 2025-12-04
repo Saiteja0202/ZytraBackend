@@ -3,6 +3,7 @@ package com.ecommerce.serviceimplemnetation;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class AdminServiceImplementation implements AdminService {
 	public ResponseEntity<String> adminRegistration(Admin newAdmin) {
 
 		if (adminRepository.existsByAdminName(newAdmin.getAdminName())) {
-			return ResponseEntity.badRequest().body("Username already exists");
+			return ResponseEntity.badRequest().body("Adminname already exists");
 		}
 		if (adminRepository.existsByEmail(newAdmin.getEmail())) {
 			return ResponseEntity.badRequest().body("Email already exists");
@@ -64,7 +65,7 @@ public class AdminServiceImplementation implements AdminService {
 		Admin newAdmin = adminRepository.findByAdminName(loginDetails.getUserName()).orElse(null);
 
 		if (newAdmin == null) {
-			return ResponseEntity.badRequest().body("Admin Name Not Found!");
+			return ResponseEntity.notFound().build();
 		}
 		if (newAdmin.getAdminActivityStatus() == "BLOCKED") {
 			return ResponseEntity.status(403).body("Admin is blocked");
@@ -94,13 +95,23 @@ public class AdminServiceImplementation implements AdminService {
 	}
 
 	@Override
-	public ResponseEntity<String> updateProfile(int adminId, Admin admin) {
+	public ResponseEntity<String> updateProfile(int adminId, Admin admin, String token) {
 
 		Admin existingAdmin = adminRepository.findByAdminId(adminId).orElse(null);
 
 		if (existingAdmin == null) {
-			return ResponseEntity.badRequest().body("Admin Not Found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
 		}
+		
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
 
 		existingAdmin.setFirstName(admin.getFirstName());
 		existingAdmin.setLastName(admin.getLastName());
@@ -120,12 +131,23 @@ public class AdminServiceImplementation implements AdminService {
 	}
 
 	@Override
-	public ResponseEntity<String> updatePassword(int adminId, UpdatePasswordDetails updatePasswordDetails) {
+	public ResponseEntity<String> updatePassword(int adminId, UpdatePasswordDetails updatePasswordDetails, String token) {
 
 		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
 		if (admin == null) {
-			ResponseEntity.badRequest().body("Admin Not Found");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
 		}
+		
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		
 		if (updatePasswordDetails.getOldPassword() == null || updatePasswordDetails.getNewPassword() == null) {
 			return ResponseEntity.badRequest().body("Enter Valid Crendentails !");
 		}
@@ -141,7 +163,24 @@ public class AdminServiceImplementation implements AdminService {
 	}
 
 	@Override
-	public ResponseEntity<List<UsersRegistrationHistory>> getAllUserDetails(int adminId) {
+	public ResponseEntity<?> getAllUserDetails(int adminId, String token) {
+		
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+		
+		if(admin == null)
+		{
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+		
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
 
 		List<Users> allUsers = usersRepository.findAll();
 

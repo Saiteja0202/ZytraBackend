@@ -2,18 +2,43 @@ package com.ecommerce.serviceimplemnetation;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.ecommerce.dtos.AllProducts;
+import com.ecommerce.dtos.CartResponse;
 import com.ecommerce.dtos.LoginDetails;
 import com.ecommerce.dtos.LoginResponse;
 import com.ecommerce.dtos.UpdatePasswordDetails;
+import com.ecommerce.entities.Brands;
+import com.ecommerce.entities.Cart;
+import com.ecommerce.entities.Categories;
+import com.ecommerce.entities.Discounts;
+import com.ecommerce.entities.Inventory;
+import com.ecommerce.entities.Products;
+import com.ecommerce.entities.Reviews;
+import com.ecommerce.entities.Seller;
+import com.ecommerce.entities.SubCategory;
 import com.ecommerce.entities.Users;
+import com.ecommerce.enums.MemberShipStatus;
 import com.ecommerce.enums.OtpStatus;
+import com.ecommerce.enums.SellerStatus;
+import com.ecommerce.repository.BrandsRepository;
+import com.ecommerce.repository.CartRepository;
+import com.ecommerce.repository.CategoriesRepository;
+import com.ecommerce.repository.DiscountsRepository;
+import com.ecommerce.repository.InventoryRepository;
+import com.ecommerce.repository.ProductsRepository;
+import com.ecommerce.repository.ReviewsRepository;
+import com.ecommerce.repository.SellerRepository;
+import com.ecommerce.repository.SubCategoryRepository;
 import com.ecommerce.repository.UsersRepository;
 import com.ecommerce.security.JwtUtil;
 import com.ecommerce.service.UsersService;
@@ -25,13 +50,35 @@ public class UsersServiceImplementation implements UsersService {
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
 	private final JavaMailSender javaMailSender;
+	private final CategoriesRepository categoriesRepository;
+	private final SubCategoryRepository subCategoryRepository;
+	private final BrandsRepository brandsRepository;
+	private final SellerRepository sellerRepository;
+	private final DiscountsRepository discountsRepository;
+	private final ProductsRepository productsRepository;
+	private final InventoryRepository inventoryRepository;
+	private final ReviewsRepository reviewsRepository;
+	private final CartRepository cartRepository;
 
-	public UsersServiceImplementation(UsersRepository usersRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
-			JavaMailSender javaMailSender) {
+	public UsersServiceImplementation(UsersRepository usersRepository, PasswordEncoder passwordEncoder,
+			SubCategoryRepository subCategoryRepository, JwtUtil jwtUtil, JavaMailSender javaMailSender,
+			CategoriesRepository categoriesRepository, BrandsRepository brandsRepository,
+			SellerRepository sellerRepository, DiscountsRepository discountsRepository,
+			ProductsRepository productsRepository, InventoryRepository inventoryRepository,
+			ReviewsRepository reviewsRepository,CartRepository cartRepository) {
 		this.usersRepository = usersRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtUtil = jwtUtil;
 		this.javaMailSender = javaMailSender;
+		this.categoriesRepository = categoriesRepository;
+		this.subCategoryRepository = subCategoryRepository;
+		this.brandsRepository = brandsRepository;
+		this.sellerRepository = sellerRepository;
+		this.discountsRepository = discountsRepository;
+		this.productsRepository = productsRepository;
+		this.inventoryRepository = inventoryRepository;
+		this.reviewsRepository = reviewsRepository;
+		this.cartRepository=cartRepository;
 	}
 
 	@Override
@@ -47,23 +94,22 @@ public class UsersServiceImplementation implements UsersService {
 		newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
 		newUser.setRegisteredDate(LocalDate.now());
 		usersRepository.save(newUser);
-		
-		SimpleMailMessage message = new SimpleMailMessage();
-		  message.setTo(newUser.getEmail());
-		    message.setSubject("Welcome to OurApp - Registration Successful");
-		    message.setText(
-		        "Dear " + newUser.getFirstName() +" " +newUser.getLastName() + ",\n\n" +
-		        "Thank you for registering with OurApp!\n\n" +
-		        "Your account has been successfully created on " + LocalDate.now() + ".\n" +
-		        "Your user name : "+newUser.getUserName()+".\n\n"+
-		        "You can now log in and start shopping.\n\n" +
-		        "If you have any questions, feel free to contact our support team.\n\n" +
-		        "Best regards,\n" +
-		        "OurApp Customer Support"
-		    );
-		    javaMailSender.send(message);
 
-		
+//		SimpleMailMessage message = new SimpleMailMessage();
+//		  message.setTo(newUser.getEmail());
+//		    message.setSubject("Welcome to OurApp - Registration Successful");
+//		    message.setText(
+//		        "Dear " + newUser.getFirstName() +" " +newUser.getLastName() + ",\n\n" +
+//		        "Thank you for registering with OurApp!\n\n" +
+//		        "Your account has been successfully created on " + LocalDate.now() + ".\n" +
+//		        "Your user name : "+newUser.getUserName()+".\n\n"+
+//		        "You can now log in and start shopping.\n\n" +
+//		        "If you have any questions, feel free to contact our support team.\n\n" +
+//		        "Best regards,\n" +
+//		        "OurApp Customer Support"
+//		    );
+//		    javaMailSender.send(message);
+
 		return ResponseEntity.ok("Registration Successful");
 	}
 
@@ -132,7 +178,7 @@ public class UsersServiceImplementation implements UsersService {
 		Users user = usersRepository.findByUserId(userId).orElse(null);
 
 		if (user == null) {
-			return ResponseEntity.badRequest().body("Email not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
 		}
 
 		if (user.getOtpNumber() == 0L || !user.getOtpStatus().equals("PENDING")) {
@@ -161,7 +207,7 @@ public class UsersServiceImplementation implements UsersService {
 		Users user = usersRepository.findByUserId(userId).orElse(null);
 
 		if (user == null) {
-			return ResponseEntity.badRequest().body("Email not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
 		}
 
 		if (user.getOtpNumber() == 0L || !user.getOtpStatus().equals("PENDING")) {
@@ -190,7 +236,7 @@ public class UsersServiceImplementation implements UsersService {
 		Users user = usersRepository.findByUserId(userId).orElse(null);
 
 		if (user == null) {
-			return ResponseEntity.badRequest().body("User not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
 		}
 
 		if (!user.getOtpStatus().equals("VERIFIED")) {
@@ -206,11 +252,20 @@ public class UsersServiceImplementation implements UsersService {
 	}
 
 	@Override
-	public ResponseEntity<String> updateUserProfile(int userId, Users users) {
+	public ResponseEntity<String> updateUserProfile(int userId, Users users, String token) {
 		Users existingUser = usersRepository.findByUserId(userId).orElse(null);
 
 		if (existingUser == null) {
-			return ResponseEntity.badRequest().body("User not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
 		}
 
 		existingUser.setFirstName(users.getFirstName());
@@ -233,10 +288,20 @@ public class UsersServiceImplementation implements UsersService {
 	}
 
 	@Override
-	public ResponseEntity<String> updatePassword(int userId, UpdatePasswordDetails updatePasswordDetails) {
+	public ResponseEntity<String> updatePassword(int userId, UpdatePasswordDetails updatePasswordDetails,
+			String token) {
 		Users user = usersRepository.findByUserId(userId).orElse(null);
 		if (user == null) {
-			return ResponseEntity.badRequest().body("User not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
 		}
 
 		if (updatePasswordDetails.getOldPassword() == null || updatePasswordDetails.getNewPassword() == null) {
@@ -251,6 +316,298 @@ public class UsersServiceImplementation implements UsersService {
 		usersRepository.save(user);
 
 		return ResponseEntity.ok("Password Updated Successfully");
+	}
+
+	@Override
+	public ResponseEntity<?> getAllProducts(int userId, String token) {
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		List<Products> allProducts = productsRepository.findAll();
+
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		ArrayList<AllProducts> listOfAllProducts = new ArrayList<>();
+
+		for (Products product : allProducts) {
+			Inventory inventory = inventoryRepository.findByProductId(product.getProductId()).orElse(null);
+			Seller seller = sellerRepository.findById(product.getSellerId()).orElse(null);
+			SubCategory subCategory = subCategoryRepository.findById(product.getSubCategoryId()).orElse(null);
+			Categories categories = categoriesRepository.findById(product.getCategoryId()).orElse(null);
+			Brands brand = brandsRepository.findById(product.getProductId()).orElse(null);
+			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
+			List<Reviews> allReviews = reviewsRepository.findByProductId(product.getProductId());
+			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
+				AllProducts newProduct = new AllProducts();
+				newProduct.setProductId(product.getProductId());
+				newProduct.setActualPrice(product.getActualPrice());
+				newProduct.setBrandName(brand.getBrandName());
+				newProduct.setCategoryName(categories.getCategoryName());
+				newProduct.setColor(product.getColor());
+				newProduct.setImage(product.getImage());
+				newProduct.setProductName(product.getProductName());
+				newProduct.setProductDescription(product.getProductDescription());
+				newProduct.setSellerName(seller.getSellerName());
+				newProduct.setSize(product.getSize());
+				newProduct.setSubCategoryName(subCategory.getSubCategoryName());
+				String discountType = discount.getDiscountType();
+				if (allReviews == null) {
+					newProduct.setAllReviews(null);
+				}
+				newProduct.setAllReviews(allReviews);
+
+				switch (discountType) {
+				case "AMOUNT": {
+					int amount = discount.getDiscountValue();
+					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+						long totalPrice = product.getActualPrice() - amount;
+						long primeDiscountAmount = (totalPrice * 5) / 100;
+						newProduct.setTotalPrice(totalPrice - primeDiscountAmount);
+					} else {
+						newProduct.setTotalPrice(product.getActualPrice() - amount);
+					}
+
+					break;
+				}
+				case "PERCENTAGE": {
+					int percentage = discount.getDiscountValue();
+					long actualPrice = product.getActualPrice();
+					long discountAmount = (actualPrice * percentage) / 100;
+					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+						long totalPrice = actualPrice - discountAmount;
+						long primeDiscountAmount = (totalPrice * 5) / 100;
+						newProduct.setTotalPrice(totalPrice - primeDiscountAmount);
+					} else {
+						newProduct.setTotalPrice(actualPrice - discountAmount);
+					}
+
+					break;
+				}
+				case "FLAT": {
+					int flatAmount = discount.getDiscountValue();
+
+					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+						long totalPrice = flatAmount;
+						long primeDiscountAmount = (totalPrice * 5) / 100;
+						newProduct.setTotalPrice(totalPrice - primeDiscountAmount);
+					} else {
+						newProduct.setTotalPrice(flatAmount);
+					}
+					break;
+				}
+				default:
+
+					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+						long totalPrice = product.getActualPrice();
+						long primeDiscountAmount = (totalPrice * 5) / 100;
+						newProduct.setTotalPrice(totalPrice - primeDiscountAmount);
+					} else {
+						newProduct.setTotalPrice(product.getActualPrice());
+					}
+				}
+
+				newProduct.setDiscountType(discount.getDiscountTypeEnum());
+				newProduct.setDiscountValue(discount.getDiscountValue());
+				newProduct.setStartDate(discount.getStartDate());
+				newProduct.setEndDate(discount.getEndDate());
+				newProduct.setStockQuantity(inventory.getStockQuantity());
+				newProduct.setSellerStatus(seller.getSellerStatusEnum());
+
+				listOfAllProducts.add(newProduct);
+			}
+		}
+
+		return ResponseEntity.ok(listOfAllProducts);
+
+	}
+
+	@Override
+	public ResponseEntity<String> subscribeToPrime(int userId, String token) {
+
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+			return ResponseEntity.badRequest().body("Already Subscribed to Prime");
+		}
+
+		user.setMemberShipStatus(MemberShipStatus.PRIME);
+		user.setMemberShipExpiryDate(LocalDate.now().plusMonths(1));
+		usersRepository.save(user);
+
+		return ResponseEntity.ok("Successfully subscribed to prime");
+	}
+
+	@Scheduled(cron = "0 0 0 * * *")
+	public void unSubscribe() {
+		List<Users> allUsers = usersRepository.findAll();
+
+		for (Users user : allUsers) {
+			if (user.getMemberShipExpiryDate().equals(LocalDate.now())) {
+				user.setMemberShipExpiryDate(null);
+				user.setMemberShipStatus(MemberShipStatus.NORMAL);
+				usersRepository.save(user);
+			}
+		}
+	}
+
+	@Override
+	public ResponseEntity<String> reviewProduct(int userId, int productId, String token, Reviews reviews) {
+
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		List<Reviews> allReviews = reviewsRepository.findByProductId(productId);
+
+		for (Reviews review : allReviews) {
+			if (review.getUserId() == userId) {
+				return ResponseEntity.badRequest().body("Already Reviewed");
+			}
+		}
+
+		reviews.setUserId(userId);
+		reviews.setProductId(productId);
+		reviews.setCreatedAt(LocalDate.now());
+		reviewsRepository.save(reviews);
+
+		return ResponseEntity.ok("Reviewd successfully");
+	}
+
+	@Override
+	public ResponseEntity<String> updateReview(int userId, int productId, String token, Reviews reviews) {
+
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		List<Reviews> allReviews = reviewsRepository.findByProductId(productId);
+		
+		if(allReviews == null)
+		{
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reviews not found");
+		}
+		
+		for(Reviews review : allReviews)
+		{
+			if(review.getUserId() == userId)
+			{
+				review.setRating(reviews.getRating());
+				review.setComment(reviews.getComment());
+				review.setCreatedAt(LocalDate.now());
+				reviewsRepository.save(review);
+			}
+		}
+
+		return ResponseEntity.ok("Successfully updated the review");
+	}
+	
+	
+	@Override
+	public ResponseEntity<?> getCart(int userId, String token)
+	{
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		List<Cart> allCart = cartRepository.findByUserId(userId);
+		
+		if(allCart == null)
+		{
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
+		}
+		
+		ArrayList<Cart> listOfCart = new ArrayList<>();
+		
+		long cartTotalPrice = 0L;
+		
+		for(Cart cart : allCart)
+		{
+			Cart newCart = new Cart();
+			newCart.setCartId(cart.getCartId());
+			newCart.setUserId(cart.getUserId());
+			newCart.setActualPrice(cart.getActualPrice());
+			newCart.setBrandName(cart.getBrandName());
+			newCart.setCategoryName(cart.getCategoryName());
+			newCart.setSize(cart.getSize());
+			newCart.setColor(cart.getColor());
+			newCart.setDiscountType(cart.getDiscountType());
+			newCart.setDiscountValue(cart.getDiscountValue());
+			newCart.setEndDate(cart.getEndDate());
+			newCart.setImage(cart.getImage());
+			newCart.setProductDescription(cart.getProductDescription());
+			newCart.setProductId(cart.getProductId());
+			newCart.setProductName(cart.getProductName());
+			newCart.setProductQuantity(cart.getProductQuantity());
+			newCart.setSellerName(cart.getSellerName());
+			newCart.setStartDate(cart.getStartDate());
+			newCart.setStockQuantity(cart.getStockQuantity());
+			newCart.setSubCategoryName(cart.getSubCategoryName());
+			newCart.setTotalPrice(cart.getTotalPrice());
+			listOfCart.add(newCart);
+			cartTotalPrice = cartTotalPrice + (newCart.getTotalPrice() * newCart.getProductQuantity());
+		}
+		
+		CartResponse response = new CartResponse();
+		response.setCarts(listOfCart);
+		response.setTotalPrice(cartTotalPrice);
+		return ResponseEntity.ok(response);
 	}
 
 }

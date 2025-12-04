@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ecommerce.dtos.LoginDetails;
 import com.ecommerce.dtos.UpdatePasswordDetails;
+import com.ecommerce.entities.Reviews;
 import com.ecommerce.entities.Users;
 import com.ecommerce.service.UsersService;
 
@@ -69,17 +71,54 @@ public class UsersController {
 	}
 	
 	@PutMapping("/update-profile/{userId}")
-	public ResponseEntity<String> updateProfile(@PathVariable int userId, @RequestBody Users users)
+	public ResponseEntity<String> updateProfile(@PathVariable int userId, @RequestBody Users users,
+			@RequestHeader("Authorization") String authHeader)
 	{
-		return userService.updateUserProfile(userId, users);
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.updateUserProfile(userId, users,token);
 	}
 	
 	@PutMapping("/update-password/{userId}")
-	public ResponseEntity<String> updatePassword(@PathVariable int userId, @RequestBody UpdatePasswordDetails updatePasswordDetails)
+	public ResponseEntity<String> updatePassword(@PathVariable int userId, @RequestBody UpdatePasswordDetails updatePasswordDetails,
+			@RequestHeader("Authorization") String authHeader)
 	{
-		return userService.updatePassword(userId,updatePasswordDetails);
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.updatePassword(userId,updatePasswordDetails,token);
 	}
 	
+	@GetMapping("/all-products/{userId}")
+	public ResponseEntity<?> getAllProducts(@PathVariable int userId, @RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.getAllProducts(userId,token);
+	}
 	
+	@PutMapping("/subscribe-prime/{userId}")
+	public ResponseEntity<String> subscribeToPrime(@PathVariable int userId, @RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.subscribeToPrime(userId, token);
+	}
+	
+	@PostMapping("/review-product/{userId}/{productId}")
+	public ResponseEntity<String> reviewProduct(@PathVariable int userId, @PathVariable int productId, @RequestBody Reviews reviews,@RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.reviewProduct(userId, productId,token,reviews);
+	}
+	
+	@PutMapping("/update-review/{userId}/{productId}")
+	public ResponseEntity<String> updateReview(@PathVariable int userId, @PathVariable int productId, @RequestBody Reviews reviews,@RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.updateReview(userId, productId,token,reviews);
+	}
+	
+	@GetMapping("/get-cart/{userId}")
+	public ResponseEntity<?> getCart(@PathVariable int userId, @RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.getCart(userId, token);
+	}
 
 }

@@ -10,6 +10,7 @@ import com.ecommerce.entities.Categories;
 import com.ecommerce.entities.Discounts;
 import com.ecommerce.entities.Inventory;
 import com.ecommerce.entities.Products;
+import com.ecommerce.entities.Reviews;
 import com.ecommerce.entities.Seller;
 import com.ecommerce.entities.SubCategory;
 import com.ecommerce.enums.SellerStatus;
@@ -18,6 +19,7 @@ import com.ecommerce.repository.CategoriesRepository;
 import com.ecommerce.repository.DiscountsRepository;
 import com.ecommerce.repository.InventoryRepository;
 import com.ecommerce.repository.ProductsRepository;
+import com.ecommerce.repository.ReviewsRepository;
 import com.ecommerce.repository.SellerRepository;
 import com.ecommerce.repository.SubCategoryRepository;
 import com.ecommerce.service.PublicEndPointsService;
@@ -32,11 +34,13 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 	private final DiscountsRepository discountsRepository;
 	private final ProductsRepository productsRepository;
 	private final InventoryRepository inventoryRepository;
+	private final ReviewsRepository reviewsRepository;
 
 	public PublicEndPointsServiceImplementation(CategoriesRepository categoriesRepository,
 			SubCategoryRepository subCategoryRepository, BrandsRepository brandsRepository,
 			SellerRepository sellerRepository, DiscountsRepository discountsRepository,
-			ProductsRepository productsRepository, InventoryRepository inventoryRepository) {
+			ProductsRepository productsRepository, InventoryRepository inventoryRepository,
+			ReviewsRepository reviewsRepository) {
 		this.categoriesRepository = categoriesRepository;
 		this.subCategoryRepository = subCategoryRepository;
 		this.brandsRepository = brandsRepository;
@@ -44,6 +48,7 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 		this.discountsRepository = discountsRepository;
 		this.productsRepository = productsRepository;
 		this.inventoryRepository = inventoryRepository;
+		this.reviewsRepository=reviewsRepository;
 	}
 
 	@Override
@@ -59,7 +64,8 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 			Categories categories = categoriesRepository.findById(product.getCategoryId()).orElse(null);
 			Brands brand = brandsRepository.findById(product.getProductId()).orElse(null);
 			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
-			if (inventory.getStockQuantity() > 0 || seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
+			List<Reviews> allReviews = reviewsRepository.findByProductId(product.getProductId());
+			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
 				AllProducts newProduct = new AllProducts();
 				newProduct.setProductId(product.getProductId());
 				newProduct.setActualPrice(product.getActualPrice());
@@ -94,7 +100,12 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 				default:
 					newProduct.setTotalPrice(product.getActualPrice());
 				}
-
+				
+				if(allReviews == null)
+				{
+					newProduct.setAllReviews(null);
+				}
+				newProduct.setAllReviews(allReviews);
 				newProduct.setDiscountType(discount.getDiscountTypeEnum());
 				newProduct.setDiscountValue(discount.getDiscountValue());
 				newProduct.setStartDate(discount.getStartDate());
