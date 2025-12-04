@@ -3,9 +3,12 @@ package com.ecommerce.serviceimplemnetation;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.ecommerce.dtos.SubCategoryDetails;
+import com.ecommerce.entities.Admin;
 import com.ecommerce.entities.Brands;
 import com.ecommerce.entities.Categories;
 import com.ecommerce.entities.Discounts;
@@ -14,6 +17,7 @@ import com.ecommerce.entities.Products;
 import com.ecommerce.entities.Seller;
 import com.ecommerce.entities.SubCategory;
 import com.ecommerce.enums.SellerStatus;
+import com.ecommerce.repository.AdminRepository;
 import com.ecommerce.repository.BrandsRepository;
 import com.ecommerce.repository.CategoriesRepository;
 import com.ecommerce.repository.DiscountsRepository;
@@ -21,6 +25,7 @@ import com.ecommerce.repository.InventoryRepository;
 import com.ecommerce.repository.ProductsRepository;
 import com.ecommerce.repository.SellerRepository;
 import com.ecommerce.repository.SubCategoryRepository;
+import com.ecommerce.security.JwtUtil;
 import com.ecommerce.service.InventoryService;
 
 @Service
@@ -33,22 +38,42 @@ public class InventoryServiceImplementation implements InventoryService {
 	private final DiscountsRepository discountsRepository;
 	private final ProductsRepository productsRepository;
 	private final InventoryRepository inventoryRepository;
+	private final AdminRepository adminRepository;
+	private final JwtUtil jwtUtil;
 
 	public InventoryServiceImplementation(CategoriesRepository categoriesRepository,
 			SubCategoryRepository subCategoryRepository, BrandsRepository brandsRepository,
 			SellerRepository sellerRepository, DiscountsRepository discountsRepository,
-			ProductsRepository productsRepository,InventoryRepository inventoryRepository) {
+			ProductsRepository productsRepository, InventoryRepository inventoryRepository,
+			AdminRepository adminRepository, JwtUtil jwtUtil) {
 		this.categoriesRepository = categoriesRepository;
 		this.subCategoryRepository = subCategoryRepository;
 		this.brandsRepository = brandsRepository;
 		this.sellerRepository = sellerRepository;
 		this.discountsRepository = discountsRepository;
 		this.productsRepository = productsRepository;
-		this.inventoryRepository=inventoryRepository;
+		this.inventoryRepository = inventoryRepository;
+		this.adminRepository = adminRepository;
+		this.jwtUtil = jwtUtil;
 	}
 
 	@Override
-	public ResponseEntity<String> addNewCategory(int adminId, Categories categories) {
+	public ResponseEntity<String> addNewCategory(int adminId, Categories categories, String token) {
+
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
 
 		if (categoriesRepository.existsByCategoryName(categories.getCategoryName())) {
 			return ResponseEntity.badRequest().body("Category already exists");
@@ -61,8 +86,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addNewSubCategory(int adminId, SubCategory subCategory) {
+	public ResponseEntity<String> addNewSubCategory(int adminId, SubCategory subCategory, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		if (subCategoryRepository.existsBySubCategoryName(subCategory.getSubCategoryName())) {
 			return ResponseEntity.badRequest().body("Subcategory already exists");
 		}
@@ -74,8 +114,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAllCategories(int adminId) {
+	public ResponseEntity<?> getAllCategories(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<Categories> allCategories = categoriesRepository.findAll();
 
 		if (allCategories == null) {
@@ -95,8 +150,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAllSubCategories(int adminId) {
+	public ResponseEntity<?> getAllSubCategories(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<SubCategory> allSubCategories = subCategoryRepository.findAll();
 
 		if (allSubCategories == null) {
@@ -119,8 +189,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addNewBrand(int adminId, Brands brands) {
+	public ResponseEntity<String> addNewBrand(int adminId, Brands brands, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		if (brandsRepository.existsByBrandName(brands.getBrandName())) {
 			return ResponseEntity.badRequest().body("Brand already exists");
 		}
@@ -133,8 +218,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAllBrands(int adminId) {
+	public ResponseEntity<?> getAllBrands(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<Brands> allBrands = brandsRepository.findAll();
 
 		if (allBrands == null) {
@@ -155,8 +255,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addNewSeller(int adminId, Seller seller) {
+	public ResponseEntity<String> addNewSeller(int adminId, Seller seller, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		if (sellerRepository.existsBySellerName(seller.getSellerName())) {
 			return ResponseEntity.badRequest().body("Seller already exists");
 		}
@@ -179,8 +294,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAllSellers(int adminId) {
+	public ResponseEntity<?> getAllSellers(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<Seller> allSellers = sellerRepository.findAll();
 
 		if (allSellers == null) {
@@ -207,15 +337,45 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addNewDiscount(int adminId, Discounts discounts) {
+	public ResponseEntity<String> addNewDiscount(int adminId, Discounts discounts, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		discountsRepository.save(discounts);
 		return ResponseEntity.ok("New Discount added successfully");
 	}
 
 	@Override
-	public ResponseEntity<?> getAllDiscounts(int adminId) {
+	public ResponseEntity<?> getAllDiscounts(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<Discounts> allDiscounts = discountsRepository.findAll();
 
 		ArrayList<Discounts> listOfAllDiscounts = new ArrayList<>();
@@ -235,8 +395,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addNewProduct(int adminId, Products products) {
+	public ResponseEntity<String> addNewProduct(int adminId, Products products, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		if (productsRepository.existsByProductName(products.getProductName())) {
 			List<Products> allProducts = productsRepository.findByProductName(products.getProductName());
 			for (Products product : allProducts) {
@@ -254,8 +429,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAllProducts(int adminId) {
+	public ResponseEntity<?> getAllProducts(int adminId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		List<Products> allProducts = productsRepository.findAll();
 
 		ArrayList<Products> listOfAllProducts = new ArrayList<>();
@@ -282,8 +472,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> activateSeller(int adminId, int sellerId) {
+	public ResponseEntity<String> activateSeller(int adminId, int sellerId, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		Seller existingSeller = sellerRepository.findById(sellerId).orElse(null);
 
 		if (existingSeller == null) {
@@ -302,7 +507,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> deactivateSeller(int adminId, int sellerId) {
+	public ResponseEntity<String> deactivateSeller(int adminId, int sellerId, String token) {
+		
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		Seller existingSeller = sellerRepository.findById(sellerId).orElse(null);
 
 		if (existingSeller == null) {
@@ -321,8 +542,23 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> updateProductDetails(int adminId, int productId, Products products) {
+	public ResponseEntity<String> updateProductDetails(int adminId, int productId, Products products, String token) {
 
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
 		Products existingProducts = productsRepository.findById(productId).orElse(null);
 
 		if (existingProducts == null) {
@@ -349,31 +585,58 @@ public class InventoryServiceImplementation implements InventoryService {
 	}
 
 	@Override
-	public ResponseEntity<String> addProductInInventroy(int adminId, Inventory inventory) {
+	public ResponseEntity<String> addProductInInventroy(int adminId, Inventory inventory, String token) {
+
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
 		
-		if(inventoryRepository.existsByProductId(inventory.getProductId()))
-		{
-			if(inventoryRepository.existsBySellerId(inventory.getSellerId()))
-			{
+		if (inventoryRepository.existsByProductId(inventory.getProductId())) {
+			if (inventoryRepository.existsBySellerId(inventory.getSellerId())) {
 				return ResponseEntity.badRequest().body("This product is already exists for this seller");
 			}
 		}
-		
+
 		inventory.setLastUpdatedAt(LocalDateTime.now());
 		inventoryRepository.save(inventory);
-		
+
 		return ResponseEntity.ok("Successfully added the inventory");
 	}
 
 	@Override
-	public ResponseEntity<?> getAllInventory(int adminId) {
+	public ResponseEntity<?> getAllInventory(int adminId, String token) {
+
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
 		
 		List<Inventory> allInventories = inventoryRepository.findAll();
-		
+
 		ArrayList<Inventory> listOfAllInventories = new ArrayList<>();
-		
-		for(Inventory inventory : allInventories)
-		{
+
+		for (Inventory inventory : allInventories) {
 			Inventory newInventory = new Inventory();
 			newInventory.setInventoryId(inventory.getInventoryId());
 			newInventory.setProductId(inventory.getProductId());
@@ -383,31 +646,42 @@ public class InventoryServiceImplementation implements InventoryService {
 			newInventory.setSellerId(inventory.getSellerId());
 			listOfAllInventories.add(newInventory);
 		}
-		
+
 		return ResponseEntity.ok(listOfAllInventories);
 	}
 
 	@Override
-	public ResponseEntity<String> updateInventory(int adminId, int inventoryId, Inventory inventory) {
-		
-		Inventory existingInventory = inventoryRepository.findById(inventoryId).orElse(null);
-		
-		if(existingInventory == null)
-		{
-			return ResponseEntity.badRequest().body("Inventory not found");
+	public ResponseEntity<String> updateInventory(int adminId, int inventoryId, Inventory inventory, String token) {
+
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
 		}
 		
+		Inventory existingInventory = inventoryRepository.findById(inventoryId).orElse(null);
+
+		if (existingInventory == null) {
+			return ResponseEntity.badRequest().body("Inventory not found");
+		}
+
 		existingInventory.setLastUpdatedAt(LocalDateTime.now());
 		existingInventory.setProductId(inventory.getProductId());
 		existingInventory.setSellerId(inventory.getSellerId());
 		existingInventory.setStockQuantity(inventory.getStockQuantity());
 		existingInventory.setWareHouseLocation(inventory.getWareHouseLocation());
 		inventoryRepository.save(existingInventory);
-		
+
 		return ResponseEntity.ok("Successfully updated Inventory");
 	}
-	
-	
-	
 
 }

@@ -1,18 +1,16 @@
 package com.ecommerce.controller;
 
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ecommerce.dtos.LoginDetails;
 import com.ecommerce.dtos.UpdatePasswordDetails;
-import com.ecommerce.dtos.UsersRegistrationHistory;
 import com.ecommerce.entities.Admin;
 import com.ecommerce.service.AdminService;
 
@@ -41,21 +39,27 @@ public class AdminController {
 	}
 	
 	@PutMapping("/update-profile/{adminId}")
-	public ResponseEntity<String> updateProfile(@PathVariable int adminId,@RequestBody Admin admin)
+	public ResponseEntity<String> updateProfile(@PathVariable int adminId,@RequestBody Admin admin,
+			@RequestHeader("Authorization") String authHeader)
 	{
-		return adminService.updateProfile(adminId, admin);
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return adminService.updateProfile(adminId, admin,token);
 	}
 	
 	@PutMapping("/update-password/{adminId}")
-	public ResponseEntity<String> updatePassword(@PathVariable int adminId, @RequestBody UpdatePasswordDetails updatePasswordDetails)
+	public ResponseEntity<String> updatePassword(@PathVariable int adminId, @RequestBody UpdatePasswordDetails updatePasswordDetails,
+			@RequestHeader("Authorization") String authHeader)
 	{
-		return adminService.updatePassword(adminId,updatePasswordDetails);
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return adminService.updatePassword(adminId,updatePasswordDetails,token);
 	}
 	
 	@GetMapping("/get-all-user-details/{adminId}")
-	public ResponseEntity<List<UsersRegistrationHistory>> getAllUserDetails(@PathVariable int adminId)
+	public ResponseEntity<?> getAllUserDetails(@PathVariable int adminId,
+			@RequestHeader("Authorization") String authHeader)
 	{
-		return adminService.getAllUserDetails(adminId);
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return adminService.getAllUserDetails(adminId,token);
 	}
 	 
 

@@ -1,6 +1,5 @@
 package com.ecommerce.entities;
 
-
 import java.time.LocalDateTime;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,44 +10,45 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
-@Table(name="products")
+@Table(name = "products")
 public class Products {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int productId;
-	
-	@NotNull(message="Category Id is required")
+
+	@NotNull(message = "Category Id is required")
 	private int categoryId;
-	
-	@NotNull(message="SubCategory Id is required")
+
+	@NotNull(message = "SubCategory Id is required")
 	private int subCategoryId;
-	
-	@NotNull(message="Brand Id is required")
+
+	@NotNull(message = "Brand Id is required")
 	private int brandId;
-	
-	@NotNull(message="Seller Id is required")
+
+	@NotNull(message = "Seller Id is required")
 	private int sellerId;
-	
-	@NotNull(message="Discount Id is required")
+
+	@NotNull(message = "Discount Id is required")
 	private int discountId;
-	
-	@NotNull(message="Admin Id is required")
+
+	@NotNull(message = "Admin Id is required")
 	private int adminId;
-	
-	@NotBlank(message="Product Name is required")
+
+	@NotBlank(message = "Product Name is required")
 	private String productName;
-	
-	@NotBlank(message="Product Description is required")
+
+	@NotBlank(message = "Product Description is required")
 	private String productDescription;
-	
-	@NotNull(message="Actual Price is required")
+
+	@NotNull(message = "Actual Price is required")
 	private long actualPrice;
-	
+
 	private LocalDateTime createdAt;
-	
+
 	private LocalDateTime updatedAt;
 	
+
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
@@ -57,11 +57,11 @@ public class Products {
 		this.updatedAt = updatedAt;
 	}
 
-	@NotBlank(message="Image is required")
+	@NotBlank(message = "Image is required")
 	private String image;
-	
+
 	private String color;
-	
+
 	private String size;
 
 	public int getProductId() {
@@ -178,8 +178,9 @@ public class Products {
 
 	public Products() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
+
+
 
 	public Products(int productId, @NotNull(message = "Category Id is required") int categoryId,
 			@NotNull(message = "SubCategory Id is required") int subCategoryId,
@@ -190,7 +191,8 @@ public class Products {
 			@NotBlank(message = "Product Name is required") String productName,
 			@NotBlank(message = "Product Description is required") String productDescription,
 			@NotNull(message = "Actual Price is required") long actualPrice, LocalDateTime createdAt,
-			LocalDateTime updatedAt, @NotBlank(message = "Image is required") String image, String color, String size) {
+			LocalDateTime updatedAt, @NotBlank(message = "Image is required") String image,
+			String color, String size) {
 		super();
 		this.productId = productId;
 		this.categoryId = categoryId;
@@ -209,8 +211,5 @@ public class Products {
 		this.size = size;
 	}
 
-	
-	
-	
 	
 }

@@ -11,40 +11,40 @@ import com.ecommerce.entities.SubCategory;
 
 public interface InventoryService {
 
-	ResponseEntity<String> addNewCategory(int adminId, Categories categories);
+	ResponseEntity<String> addNewCategory(int adminId, Categories categories,String token);
 
-	ResponseEntity<String> addNewSubCategory(int adminId, SubCategory subCategory);
+	ResponseEntity<String> addNewSubCategory(int adminId, SubCategory subCategory,String token);
 
-	ResponseEntity<String> addNewBrand(int adminId, Brands brands);
+	ResponseEntity<String> addNewBrand(int adminId, Brands brands,String token);
 
-	ResponseEntity<?> getAllCategories(int adminId);
+	ResponseEntity<?> getAllCategories(int adminId,String token);
 
-	ResponseEntity<?> getAllSubCategories(int adminId);
+	ResponseEntity<?> getAllSubCategories(int adminId,String token);
 	
-	ResponseEntity<?> getAllBrands(int adminId);
+	ResponseEntity<?> getAllBrands(int adminId,String token);
 	
-	ResponseEntity<String> addNewSeller(int adminId,Seller seller);
+	ResponseEntity<String> addNewSeller(int adminId,Seller seller,String token);
 	
-	ResponseEntity<?> getAllSellers(int adminId);
+	ResponseEntity<?> getAllSellers(int adminId,String token);
 	
-	ResponseEntity<String> addNewDiscount(int adminId, Discounts discounts);
+	ResponseEntity<String> addNewDiscount(int adminId, Discounts discounts,String token);
 	
-	ResponseEntity<?> getAllDiscounts(int adminId);
+	ResponseEntity<?> getAllDiscounts(int adminId,String token);
 	
-	ResponseEntity<String> addNewProduct(int adminId, Products products);
+	ResponseEntity<String> addNewProduct(int adminId, Products products,String token);
 	
-	ResponseEntity<?> getAllProducts(int adminId);
+	ResponseEntity<?> getAllProducts(int adminId,String token);
 	
-	ResponseEntity<String> activateSeller(int adminId, int sellerId);
+	ResponseEntity<String> activateSeller(int adminId, int sellerId,String token);
 	
-	ResponseEntity<String> deactivateSeller(int adminId, int sellerId);
+	ResponseEntity<String> deactivateSeller(int adminId, int sellerId,String token);
 	
-	ResponseEntity<String> updateProductDetails(int adminId, int productId,Products products);
+	ResponseEntity<String> updateProductDetails(int adminId, int productId,Products products,String token);
 	
-	ResponseEntity<String> addProductInInventroy(int adminId, Inventory inventory);
+	ResponseEntity<String> addProductInInventroy(int adminId, Inventory inventory,String token);
 	
-	ResponseEntity<?> getAllInventory(int adminId);
+	ResponseEntity<?> getAllInventory(int adminId,String token);
 	
-	ResponseEntity<String> updateInventory(int adminId, int inventoryId, Inventory inventory);
+	ResponseEntity<String> updateInventory(int adminId, int inventoryId, Inventory inventory,String token);
 
 }

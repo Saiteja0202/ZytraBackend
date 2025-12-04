@@ -88,11 +88,21 @@ public class Users {
 
 	@Column(name = "otp_expiry")
 	private LocalDateTime otpExpiry;
+	
+	public LocalDate getMemberShipExpiryDate() {
+		return memberShipExpiryDate;
+	}
+
+	public void setMemberShipExpiryDate(LocalDate memberShipExpiryDate) {
+		this.memberShipExpiryDate = memberShipExpiryDate;
+	}
+
+	private LocalDate memberShipExpiryDate;
 
 	public LocalDateTime getOtpExpiry() {
 		return otpExpiry;
 	}
-
+	
 	public void setOtpExpiry(LocalDateTime otpExpiry) {
 		this.otpExpiry = otpExpiry;
 	}
@@ -269,6 +279,8 @@ public class Users {
 		this.otpStatus = otpStatus;
 	}
 
+
+
 	public Users(int userId, Roles role, @NotBlank(message = "First Name is Required") String firstName,
 			@NotBlank(message = "Last Name is Required") String lastName,
 			@NotBlank(message = "Phone Number is Required") String phoneNumber,
@@ -284,7 +296,8 @@ public class Users {
 			@NotBlank(message = "Country is Required") String country,
 			@NotBlank(message = "User Name is Required") String userName,
 			@NotBlank(message = "Password is Required") String password, MemberShipStatus memberShipStatus,
-			long otpNumber, OtpStatus otpStatus, LocalDate registeredDate) {
+			Long otpNumber, OtpStatus otpStatus, LocalDate registeredDate, LocalDateTime otpExpiry,
+			LocalDate memberShipExpiryDate) {
 		super();
 		this.userId = userId;
 		this.role = role;
@@ -307,6 +320,8 @@ public class Users {
 		this.otpNumber = otpNumber;
 		this.otpStatus = otpStatus;
 		this.registeredDate = registeredDate;
+		this.otpExpiry = otpExpiry;
+		this.memberShipExpiryDate = memberShipExpiryDate;
 	}
 
 	public Users() {
