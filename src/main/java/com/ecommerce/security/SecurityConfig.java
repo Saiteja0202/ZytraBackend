@@ -30,7 +30,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://localhost:7653");
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
@@ -46,7 +46,7 @@ public class SecurityConfig {
             .cors(withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/user/registration", "/admin/registration", "/user/login","/admin/login","/swagger-ui/**","/v3/api-docs/**"
-                		,"/user/generate-otp","/user/forgot-password/verify-otp","/all-products",
+                		,"/user/generate-otp","/user/forgot-password/verify-otp","/all-products","/all-categories","/all-sub-categories","/all-brands","/all-discounts",
                 		"/user/forgot-username/verify-otp","/user/update-forgot-password/**").permitAll()
                 .requestMatchers("/user/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")

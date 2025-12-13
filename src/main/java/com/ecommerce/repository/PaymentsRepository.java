@@ -1,0 +1,14 @@
+package com.ecommerce.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.ecommerce.entities.Payments;
+
+public interface PaymentsRepository extends JpaRepository<Payments, Integer> {
+	
+	
+	Optional<Payments> findByOrderId(int orderId);
+
+}

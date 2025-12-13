@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.ecommerce.dtos.AllProducts;
+import com.ecommerce.dtos.SubCategoryDetails;
 import com.ecommerce.entities.Brands;
 import com.ecommerce.entities.Categories;
 import com.ecommerce.entities.Discounts;
@@ -62,7 +63,7 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 			Seller seller = sellerRepository.findById(product.getSellerId()).orElse(null);
 			SubCategory subCategory = subCategoryRepository.findById(product.getSubCategoryId()).orElse(null);
 			Categories categories = categoriesRepository.findById(product.getCategoryId()).orElse(null);
-			Brands brand = brandsRepository.findById(product.getProductId()).orElse(null);
+			Brands brand = brandsRepository.findById(product.getBrandId()).orElse(null);
 			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
 			List<Reviews> allReviews = reviewsRepository.findByProductId(product.getProductId());
 			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
@@ -78,6 +79,11 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 				newProduct.setSellerName(seller.getSellerName());
 				newProduct.setSize(product.getSize());
 				newProduct.setSubCategoryName(subCategory.getSubCategoryName());
+				newProduct.setProductSubDescription(product.getProductSubDescription());
+				newProduct.setImageFrontView(product.getImageFrontView());
+				newProduct.setImageBottomView(product.getImageBottomView());
+				newProduct.setImageSideView(product.getImageSideView());
+				newProduct.setImageTopView(product.getImageTopView());
 				String discountType = discount.getDiscountType();
 				switch (discountType) {
 				case "AMOUNT": {
@@ -118,5 +124,94 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 
 		return ResponseEntity.ok(listOfAllProducts);
 	}
+	
+	@Override
+	public ResponseEntity<?> getAllCategories()
+	{
+		List<Categories> allCategories = categoriesRepository.findAll();
+
+		if (allCategories == null) {
+			return ResponseEntity.badRequest().body("Categories not found");
+		}
+
+		ArrayList<Categories> listOfCategories = new ArrayList<>();
+		for (Categories category : allCategories) {
+			Categories categories = new Categories();
+			categories.setCategoryId(category.getCategoryId());
+			categories.setCategoryName(category.getCategoryName());
+			categories.setCategoryDescription(category.getCategoryDescription());
+			listOfCategories.add(categories);
+		}
+
+		return ResponseEntity.ok(listOfCategories);
+	}
+	
+	@Override
+	public ResponseEntity<?> getAllSubCategories()
+	{
+		List<SubCategory> allSubCategories = subCategoryRepository.findAll();
+
+		if (allSubCategories == null) {
+			return ResponseEntity.badRequest().body("SubCategories not found");
+		}
+
+		ArrayList<SubCategoryDetails> listOfAllSubCategories = new ArrayList<>();
+		for (SubCategory subCategory : allSubCategories) {
+			SubCategoryDetails subCategoryDetails = new SubCategoryDetails();
+			subCategoryDetails.setSubCategoryId(subCategory.getSubCategoryId());
+			subCategoryDetails.setSubCategoryName(subCategory.getSubCategoryName());
+			subCategoryDetails.setSubCategoryDescription(subCategory.getSubCategoryDescription());
+			Categories category = categoriesRepository.findById(subCategory.getCategoryId()).orElse(null);
+			subCategoryDetails.setCategoryName(category.getCategoryName());
+			subCategoryDetails.setCategoryDescription(category.getCategoryDescription());
+			listOfAllSubCategories.add(subCategoryDetails);
+		}
+
+		return ResponseEntity.ok(listOfAllSubCategories);
+	}
+	
+	@Override
+	public ResponseEntity<?> getAllBrands()
+	{
+		List<Brands> allBrands = brandsRepository.findAll();
+
+		if (allBrands == null) {
+			return ResponseEntity.badRequest().body("Brands not found");
+		}
+
+		ArrayList<Brands> listOfAllBrands = new ArrayList<>();
+
+		for (Brands brands : allBrands) {
+			Brands brand = new Brands();
+			brand.setBrandId(brands.getBrandId());
+			brand.setBrandName(brands.getBrandName());
+			brand.setBrandDescription(brands.getBrandDescription());
+			listOfAllBrands.add(brand);
+		}
+
+		return ResponseEntity.ok(listOfAllBrands);
+	}
+	
+	@Override
+	public ResponseEntity<?> getAllDiscounts()
+	{
+		List<Discounts> allDiscounts = discountsRepository.findAll();
+
+		ArrayList<Discounts> listOfAllDiscounts = new ArrayList<>();
+
+		for (Discounts discounts : allDiscounts) {
+
+			Discounts discount = new Discounts();
+			discount.setDiscountId(discounts.getDiscountId());
+			discount.setDiscountType(discounts.getDiscountTypeEnum());
+			discount.setDiscountValue(discounts.getDiscountValue());
+			discount.setStartDate(discounts.getStartDate());
+			discount.setEndDate(discounts.getEndDate());
+			listOfAllDiscounts.add(discount);
+		}
+
+		return ResponseEntity.ok(listOfAllDiscounts);
+	}
+	
 
 }

@@ -161,6 +161,45 @@ public class AdminServiceImplementation implements AdminService {
 
 		return ResponseEntity.ok("Password Updated Successfully");
 	}
+	
+	
+	@Override
+	public ResponseEntity<?> getAdminDetails(int adminId, String token)
+	{
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+		
+		if(admin == null)
+		{
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+		
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+
+		Admin adminDetails = new Admin();
+		adminDetails.setAdminId(admin.getAdminId());
+		adminDetails.setAdminName(admin.getAdminName());
+		adminDetails.setFirstName(admin.getFirstName());
+		adminDetails.setLastName(admin.getLastName());
+		adminDetails.setPhoneNumber(admin.getPhoneNumber());
+		adminDetails.setEmail(admin.getEmail());
+		adminDetails.setAddress(admin.getAddress());
+		adminDetails.setCity(admin.getCity());
+		adminDetails.setDistrict(admin.getDistrict());
+		adminDetails.setPostalCode(admin.getPostalCode());
+		adminDetails.setState(admin.getState());
+		adminDetails.setCountry(admin.getCountry());
+	
+		System.out.println("Admin Details fetching : ________________***************___________ : "+adminDetails.toString());
+		return ResponseEntity.ok(adminDetails);
+	}
 
 	@Override
 	public ResponseEntity<?> getAllUserDetails(int adminId, String token) {
