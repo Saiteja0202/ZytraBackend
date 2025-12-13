@@ -17,17 +17,21 @@ import com.ecommerce.entities.Inventory;
 import com.ecommerce.entities.Products;
 import com.ecommerce.entities.Seller;
 import com.ecommerce.entities.SubCategory;
+import com.ecommerce.repository.ReviewsRepository;
 import com.ecommerce.service.InventoryService;
 
 @RestController
 @RequestMapping("/admin/inventory")
 public class InventoryController {
+
+    private final ReviewsRepository reviewsRepository;
 	
 	private final InventoryService inventoryService;
 	
-	public InventoryController(InventoryService inventoryService)
+	public InventoryController(InventoryService inventoryService, ReviewsRepository reviewsRepository)
 	{
 		this.inventoryService=inventoryService;
+		this.reviewsRepository = reviewsRepository;
 	}
 	
 	@PostMapping("/add-category/{adminId}")
@@ -159,4 +163,46 @@ public class InventoryController {
 		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 		return inventoryService.updateInventory(adminId,inventoryId,inventory,token);
 	}
+	
+	@PutMapping("/update-category/{adminId}/{categoryId}")
+	public ResponseEntity<?> updateCategory(@PathVariable int adminId, @PathVariable int categoryId,@RequestHeader("Authorization") String authHeader ,
+			@RequestBody Categories categories)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return inventoryService.updateCategory(adminId, categoryId, categories, token);
+	}
+	
+	@PutMapping("/update-subcategory/{adminId}/{subcategoryId}")
+	public ResponseEntity<?> updateSubCategory(@PathVariable int adminId, @PathVariable int subcategoryId,@RequestHeader("Authorization") String authHeader ,
+			@RequestBody SubCategory subCategory)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return inventoryService.updateSubCategory(adminId, subcategoryId, subCategory, token);
+	}
+	
+	@PutMapping("/update-brand/{adminId}/{brandId}")
+	public ResponseEntity<?> updateBrand(@PathVariable int adminId, @PathVariable int brandId,@RequestHeader("Authorization") String authHeader ,
+			@RequestBody Brands brands)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return inventoryService.updateBrand(adminId, brandId, brands, token);
+	}
+	
+	@PutMapping("/update-seller/{adminId}/{sellerId}")
+	public ResponseEntity<?> updateSeller(@PathVariable int adminId, @PathVariable int sellerId,@RequestHeader("Authorization") String authHeader ,
+			@RequestBody Seller seller)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return inventoryService.updateSeller(adminId, sellerId, seller, token);
+	}
+	
+	@PutMapping("/update-discount/{adminId}/{discountId}")
+	public ResponseEntity<?> updateDiscount(@PathVariable int adminId, @PathVariable int discountId,@RequestHeader("Authorization") String authHeader ,
+			@RequestBody Discounts discounts)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return inventoryService.updateDiscount(adminId, discountId, discounts, token);
+	}
+	
+	
 }

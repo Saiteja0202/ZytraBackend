@@ -46,5 +46,15 @@ public interface InventoryService {
 	ResponseEntity<?> getAllInventory(int adminId,String token);
 	
 	ResponseEntity<String> updateInventory(int adminId, int inventoryId, Inventory inventory,String token);
+	
+	ResponseEntity<?> updateCategory(int adminId, int categoryId, Categories categories, String token);
+	
+	ResponseEntity<?> updateSubCategory(int adminId, int subcategoryId, SubCategory subCategory, String token);
+	
+	ResponseEntity<?> updateBrand(int adminId, int brandId, Brands brands, String token);
+	
+	ResponseEntity<?> updateSeller(int adminId, int sellerId, Seller seller, String token);
+	
+	ResponseEntity<?> updateDiscount(int adminId, int discountId, Discounts discounts, String token);
 
 }

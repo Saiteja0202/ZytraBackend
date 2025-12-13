@@ -45,6 +45,16 @@ public class AllProducts {
 
 	private int stockQuantity;
 
+	private String imageFrontView;
+
+	private String imageTopView;
+
+	private String imageSideView;
+
+	private String imageBottomView;
+
+	private String productSubDescription;
+
 	private List<Reviews> allReviews;
 
 	public int getProductId() {
@@ -191,13 +201,52 @@ public class AllProducts {
 		this.stockQuantity = stockQuantity;
 	}
 
-
 	public List<Reviews> getAllReviews() {
 		return allReviews;
 	}
 
 	public void setAllReviews(List<Reviews> allReviews) {
 		this.allReviews = allReviews;
+	}
+
+	public String getImageFrontView() {
+		return imageFrontView;
+	}
+
+	public void setImageFrontView(String imageFrontView) {
+		this.imageFrontView = imageFrontView;
+	}
+
+	public String getImageTopView() {
+		return imageTopView;
+	}
+
+	public void setImageTopView(String imageTopView) {
+		this.imageTopView = imageTopView;
+	}
+
+	public String getImageSideView() {
+		return imageSideView;
+	}
+
+	public void setImageSideView(String imageSideView) {
+		this.imageSideView = imageSideView;
+	}
+
+	public String getImageBottomView() {
+		return imageBottomView;
+	}
+
+	public void setImageBottomView(String imageBottomView) {
+		this.imageBottomView = imageBottomView;
+	}
+
+	public String getProductSubDescription() {
+		return productSubDescription;
+	}
+
+	public void setProductSubDescription(String productSubDescription) {
+		this.productSubDescription = productSubDescription;
 	}
 
 	public AllProducts() {
@@ -207,7 +256,9 @@ public class AllProducts {
 	public AllProducts(int productId, long actualPrice, String brandName, String categoryName, String color,
 			int discountValue, DiscountTypes discountType, LocalDateTime startDate, LocalDateTime endDate,
 			long totalPrice, String image, String productDescription, String productName, String sellerName,
-			SellerStatus sellerStatus, String size, String subCategoryName, int stockQuantity, List<Reviews> allReviews) {
+			SellerStatus sellerStatus, String size, String subCategoryName, int stockQuantity, String imageFrontView,
+			String imageTopView, String imageSideView, String imageBottomView, String productSubDescription,
+			List<Reviews> allReviews) {
 		super();
 		this.productId = productId;
 		this.actualPrice = actualPrice;
@@ -227,6 +278,11 @@ public class AllProducts {
 		this.size = size;
 		this.subCategoryName = subCategoryName;
 		this.stockQuantity = stockQuantity;
+		this.imageFrontView = imageFrontView;
+		this.imageTopView = imageTopView;
+		this.imageSideView = imageSideView;
+		this.imageBottomView = imageBottomView;
+		this.productSubDescription = productSubDescription;
 		this.allReviews = allReviews;
 	}
 

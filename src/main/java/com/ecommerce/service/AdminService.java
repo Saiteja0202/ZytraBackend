@@ -12,4 +12,5 @@ public interface AdminService {
 	ResponseEntity<String> updateProfile(int adminId,Admin admin,String token);
 	ResponseEntity<String> updatePassword(int adminId,UpdatePasswordDetails updatePasswordDetails,String token);
 	ResponseEntity<?> getAllUserDetails(int adminId,String token);
+	ResponseEntity<?> getAdminDetails(int adminId, String token);
 }

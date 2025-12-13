@@ -3,7 +3,6 @@ package com.ecommerce.serviceimplemnetation;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,6 +30,7 @@ import com.ecommerce.service.InventoryService;
 @Service
 public class InventoryServiceImplementation implements InventoryService {
 
+
 	private final CategoriesRepository categoriesRepository;
 	private final SubCategoryRepository subCategoryRepository;
 	private final BrandsRepository brandsRepository;
@@ -55,6 +55,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		this.inventoryRepository = inventoryRepository;
 		this.adminRepository = adminRepository;
 		this.jwtUtil = jwtUtil;
+		
 	}
 
 	@Override
@@ -102,7 +103,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		if (subCategoryRepository.existsBySubCategoryName(subCategory.getSubCategoryName())) {
 			return ResponseEntity.badRequest().body("Subcategory already exists");
 		}
@@ -130,7 +131,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Categories> allCategories = categoriesRepository.findAll();
 
 		if (allCategories == null) {
@@ -166,7 +167,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<SubCategory> allSubCategories = subCategoryRepository.findAll();
 
 		if (allSubCategories == null) {
@@ -205,7 +206,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		if (brandsRepository.existsByBrandName(brands.getBrandName())) {
 			return ResponseEntity.badRequest().body("Brand already exists");
 		}
@@ -234,7 +235,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Brands> allBrands = brandsRepository.findAll();
 
 		if (allBrands == null) {
@@ -271,7 +272,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		if (sellerRepository.existsBySellerName(seller.getSellerName())) {
 			return ResponseEntity.badRequest().body("Seller already exists");
 		}
@@ -310,7 +311,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Seller> allSellers = sellerRepository.findAll();
 
 		if (allSellers == null) {
@@ -353,7 +354,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		discountsRepository.save(discounts);
 		return ResponseEntity.ok("New Discount added successfully");
 	}
@@ -375,8 +376,12 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Discounts> allDiscounts = discountsRepository.findAll();
+
+		if (allDiscounts == null) {
+			return ResponseEntity.badRequest().body("Discounts not found");
+		}
 
 		ArrayList<Discounts> listOfAllDiscounts = new ArrayList<>();
 
@@ -411,7 +416,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		if (productsRepository.existsByProductName(products.getProductName())) {
 			List<Products> allProducts = productsRepository.findByProductName(products.getProductName());
 			for (Products product : allProducts) {
@@ -445,7 +450,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Products> allProducts = productsRepository.findAll();
 
 		ArrayList<Products> listOfAllProducts = new ArrayList<>();
@@ -466,6 +471,12 @@ public class InventoryServiceImplementation implements InventoryService {
 			product.setSize(products.getSize());
 			product.setAdminId(adminId);
 			product.setCreatedAt(products.getCreatedAt());
+			product.setUpdatedAt(products.getUpdatedAt());
+			product.setProductSubDescription(products.getProductSubDescription());
+			product.setImageFrontView(products.getImageFrontView());
+			product.setImageSideView(products.getImageSideView());
+			product.setImageTopView(products.getImageTopView());
+			product.setImageBottomView(products.getImageBottomView());
 			listOfAllProducts.add(product);
 		}
 		return ResponseEntity.ok(listOfAllProducts);
@@ -488,7 +499,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		Seller existingSeller = sellerRepository.findById(sellerId).orElse(null);
 
 		if (existingSeller == null) {
@@ -508,7 +519,7 @@ public class InventoryServiceImplementation implements InventoryService {
 
 	@Override
 	public ResponseEntity<String> deactivateSeller(int adminId, int sellerId, String token) {
-		
+
 		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
 
 		if (admin == null) {
@@ -523,7 +534,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		Seller existingSeller = sellerRepository.findById(sellerId).orElse(null);
 
 		if (existingSeller == null) {
@@ -558,7 +569,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		Products existingProducts = productsRepository.findById(productId).orElse(null);
 
 		if (existingProducts == null) {
@@ -578,7 +589,11 @@ public class InventoryServiceImplementation implements InventoryService {
 		existingProducts.setSellerId(products.getSellerId());
 		existingProducts.setSize(products.getSize());
 		existingProducts.setSubCategoryId(products.getSubCategoryId());
-
+		existingProducts.setProductSubDescription(products.getProductSubDescription());
+		existingProducts.setImageFrontView(products.getImageFrontView());
+		existingProducts.setImageSideView(products.getImageSideView());
+		existingProducts.setImageTopView(products.getImageTopView());
+		existingProducts.setImageBottomView(products.getImageBottomView());
 		productsRepository.save(existingProducts);
 
 		return ResponseEntity.ok("Successfully updated the product details");
@@ -601,7 +616,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		if (inventoryRepository.existsByProductId(inventory.getProductId())) {
 			if (inventoryRepository.existsBySellerId(inventory.getSellerId())) {
 				return ResponseEntity.badRequest().body("This product is already exists for this seller");
@@ -631,7 +646,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		List<Inventory> allInventories = inventoryRepository.findAll();
 
 		ArrayList<Inventory> listOfAllInventories = new ArrayList<>();
@@ -667,7 +682,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		if (tokenUserId == null || tokenUserId != adminId) {
 			return ResponseEntity.status(403).body("You are not authorized !");
 		}
-		
+
 		Inventory existingInventory = inventoryRepository.findById(inventoryId).orElse(null);
 
 		if (existingInventory == null) {
@@ -683,5 +698,173 @@ public class InventoryServiceImplementation implements InventoryService {
 
 		return ResponseEntity.ok("Successfully updated Inventory");
 	}
+
+	@Override
+	public ResponseEntity<?> updateCategory(int adminId, int categoryId, Categories categories, String token) {
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		Categories existingCategory = categoriesRepository.findById(categoryId).orElse(null);
+
+		if (existingCategory == null) {
+			return ResponseEntity.badRequest().body("Category not found");
+		}
+
+		existingCategory.setCategoryName(categories.getCategoryName());
+		existingCategory.setCategoryDescription(categories.getCategoryDescription());
+		categoriesRepository.save(existingCategory);
+
+		return ResponseEntity.ok("Successfully updated Category");
+
+	}
+
+	@Override
+	public ResponseEntity<?> updateSubCategory(int adminId, int subcategoryId, SubCategory subCategory, String token) {
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+
+		SubCategory existingSubCategory = subCategoryRepository.findById(subcategoryId).orElse(null);
+		if (existingSubCategory == null) {
+			return ResponseEntity.badRequest().body("SubCategory not found");
+		}
+
+		existingSubCategory.setSubCategoryName(subCategory.getSubCategoryName());
+		existingSubCategory.setSubCategoryDescription(subCategory.getSubCategoryDescription());
+		existingSubCategory.setCategoryId(subCategory.getCategoryId());
+
+		subCategoryRepository.save(existingSubCategory);
+
+		return ResponseEntity.ok("Successfully updated Subcategory");
+
+	}
+	
+	@Override
+	public ResponseEntity<?> updateBrand(int adminId, int brandId, Brands brands, String token)
+	{
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		Brands existingBrand = brandsRepository.findById(brandId).orElse(null);
+		
+		if (existingBrand == null) {
+			return ResponseEntity.badRequest().body("Brand not found");
+		}
+		
+		existingBrand.setBrandName(brands.getBrandName());
+		existingBrand.setBrandDescription(brands.getBrandDescription());
+		brandsRepository.save(existingBrand);
+		
+		return ResponseEntity.ok("Successfully updated Brands");
+		
+	}
+	
+	
+	@Override
+	public ResponseEntity<?> updateSeller(int adminId, int sellerId, Seller seller, String token)
+	{
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		Seller existingSeller = sellerRepository.findById(sellerId).orElse(null);
+		
+		if (existingSeller == null) {
+			return ResponseEntity.badRequest().body("Seller not found");
+		}
+		
+		existingSeller.setAddress(seller.getAddress());
+		existingSeller.setEmail(seller.getEmail());
+		existingSeller.setPhoneNumber(seller.getPhoneNumber());
+		existingSeller.setSellerName(seller.getSellerName());
+		existingSeller.setSellerStatus(seller.getSellerStatusEnum());
+		existingSeller.setUpdatedAt(LocalDateTime.now());
+		existingSeller.setAdminId(adminId);
+		sellerRepository.save(existingSeller);
+		
+		return ResponseEntity.ok("Successfully updated Seller");
+		
+	}
+	
+	@Override
+	public  ResponseEntity<?> updateDiscount(int adminId, int discountId, Discounts discounts, String token)
+	{
+		Admin admin = adminRepository.findByAdminId(adminId).orElse(null);
+
+		if (admin == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != adminId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		Discounts existingDiscounts = discountsRepository.findById(discountId).orElse(null);
+		
+		if (existingDiscounts == null) {
+			return ResponseEntity.badRequest().body("Seller not found");
+		}
+		
+		existingDiscounts.setDiscountType(discounts.getDiscountTypeEnum());
+		existingDiscounts.setDiscountValue(discounts.getDiscountValue());
+		existingDiscounts.setEndDate(discounts.getEndDate());
+		existingDiscounts.setStartDate(discounts.getStartDate());
+		discountsRepository.save(existingDiscounts);
+		
+		return ResponseEntity.ok("Successfully updated Discounts");
+		
+	}
+	
 
 }

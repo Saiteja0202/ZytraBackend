@@ -61,6 +61,14 @@ public class AdminController {
 		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 		return adminService.getAllUserDetails(adminId,token);
 	}
+	
+	@GetMapping("/get-admin-details/{adminId}")
+	public ResponseEntity<?> getAdminDetails(@PathVariable int adminId,
+			@RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return adminService.getAdminDetails(adminId, token);
+	}
 	 
 
 }

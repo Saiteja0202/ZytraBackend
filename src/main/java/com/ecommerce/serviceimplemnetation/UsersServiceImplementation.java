@@ -107,7 +107,7 @@ public class UsersServiceImplementation implements UsersService {
 //		        "If you have any questions, feel free to contact our support team.\n\n" +
 //		        "Best regards,\n" +
 //		        "OurApp Customer Support"
-//		    );
+//		    );    
 //		    javaMailSender.send(message);
 
 		return ResponseEntity.ok("Registration Successful");
@@ -345,7 +345,7 @@ public class UsersServiceImplementation implements UsersService {
 			Seller seller = sellerRepository.findById(product.getSellerId()).orElse(null);
 			SubCategory subCategory = subCategoryRepository.findById(product.getSubCategoryId()).orElse(null);
 			Categories categories = categoriesRepository.findById(product.getCategoryId()).orElse(null);
-			Brands brand = brandsRepository.findById(product.getProductId()).orElse(null);
+			Brands brand = brandsRepository.findById(product.getBrandId()).orElse(null);
 			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
 			List<Reviews> allReviews = reviewsRepository.findByProductId(product.getProductId());
 			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
@@ -423,7 +423,6 @@ public class UsersServiceImplementation implements UsersService {
 				newProduct.setEndDate(discount.getEndDate());
 				newProduct.setStockQuantity(inventory.getStockQuantity());
 				newProduct.setSellerStatus(seller.getSellerStatusEnum());
-
 				listOfAllProducts.add(newProduct);
 			}
 		}
