@@ -197,7 +197,6 @@ public class AdminServiceImplementation implements AdminService {
 		adminDetails.setState(admin.getState());
 		adminDetails.setCountry(admin.getCountry());
 	
-		System.out.println("Admin Details fetching : ________________***************___________ : "+adminDetails.toString());
 		return ResponseEntity.ok(adminDetails);
 	}
 

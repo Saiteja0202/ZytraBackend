@@ -144,6 +144,7 @@ public class InventoryServiceImplementation implements InventoryService {
 			categories.setCategoryId(category.getCategoryId());
 			categories.setCategoryName(category.getCategoryName());
 			categories.setCategoryDescription(category.getCategoryDescription());
+			categories.setCategoryImage(category.getCategoryImage());
 			listOfCategories.add(categories);
 		}
 
@@ -249,6 +250,7 @@ public class InventoryServiceImplementation implements InventoryService {
 			brand.setBrandId(brands.getBrandId());
 			brand.setBrandName(brands.getBrandName());
 			brand.setBrandDescription(brands.getBrandDescription());
+			brand.setBrandImage(brands.getBrandImage());
 			listOfAllBrands.add(brand);
 		}
 
@@ -724,6 +726,7 @@ public class InventoryServiceImplementation implements InventoryService {
 
 		existingCategory.setCategoryName(categories.getCategoryName());
 		existingCategory.setCategoryDescription(categories.getCategoryDescription());
+		existingCategory.setCategoryImage(categories.getCategoryImage());
 		categoriesRepository.save(existingCategory);
 
 		return ResponseEntity.ok("Successfully updated Category");
@@ -788,6 +791,7 @@ public class InventoryServiceImplementation implements InventoryService {
 		
 		existingBrand.setBrandName(brands.getBrandName());
 		existingBrand.setBrandDescription(brands.getBrandDescription());
+		existingBrand.setBrandImage(brands.getBrandImage());
 		brandsRepository.save(existingBrand);
 		
 		return ResponseEntity.ok("Successfully updated Brands");

@@ -20,6 +20,19 @@ public class Categories {
 
 	@NotBlank(message = "Category Description is required")
 	private String categoryDescription;
+	
+	@NotBlank
+	private String categoryImage;
+	
+	
+
+	public String getCategoryImage() {
+		return categoryImage;
+	}
+
+	public void setCategoryImage(String categoryImage) {
+		this.categoryImage = categoryImage;
+	}
 
 	public int getCategoryId() {
 		return categoryId;
@@ -45,12 +58,16 @@ public class Categories {
 		this.categoryDescription = categoryDescription;
 	}
 
+	
+
 	public Categories(int categoryId, @NotBlank(message = "Category Name is required") String categoryName,
-			@NotBlank(message = "Category Description is required") String categoryDescription) {
+			@NotBlank(message = "Category Description is required") String categoryDescription,
+			@NotBlank String categoryImage) {
 		super();
 		this.categoryId = categoryId;
 		this.categoryName = categoryName;
 		this.categoryDescription = categoryDescription;
+		this.categoryImage = categoryImage;
 	}
 
 	public Categories() {

@@ -24,6 +24,12 @@ public class SubCategory {
 
 	@NotBlank(message = "SubCategory Description is required")
 	private String subCategoryDescription;
+	
+	
+	
+	
+
+	
 
 	public int getSubCategoryId() {
 		return subCategoryId;
@@ -57,7 +63,12 @@ public class SubCategory {
 		this.subCategoryDescription = subCategoryDescription;
 	}
 
-	public SubCategory(int subCategoryId, int categoryId, String subCategoryName, String subCategoryDescription) {
+	
+
+	public SubCategory(int subCategoryId, @NotNull(message = "Category Id is required") int categoryId,
+			@NotBlank(message = "SubCategory Name is required") String subCategoryName,
+			@NotBlank(message = "SubCategory Description is required") String subCategoryDescription
+		) {
 		super();
 		this.subCategoryId = subCategoryId;
 		this.categoryId = categoryId;

@@ -20,6 +20,17 @@ public class Brands {
 
 	@NotBlank(message = "Brand Description is required")
 	private String brandDescription;
+	
+	@NotBlank
+	private String brandImage;
+
+	public String getBrandImage() {
+		return brandImage;
+	}
+
+	public void setBrandImage(String brandImage) {
+		this.brandImage = brandImage;
+	}
 
 	public int getBrandId() {
 		return brandId;
@@ -45,11 +56,13 @@ public class Brands {
 		this.brandDescription = brandDescription;
 	}
 
-	public Brands(int brandId, String brandName, String brandDescription) {
+	public Brands(int brandId, @NotBlank(message = "Brand Name is required") String brandName,
+			@NotBlank(message = "Brand Description is required") String brandDescription, @NotBlank String brandImage) {
 		super();
 		this.brandId = brandId;
 		this.brandName = brandName;
 		this.brandDescription = brandDescription;
+		this.brandImage = brandImage;
 	}
 
 	public Brands() {
