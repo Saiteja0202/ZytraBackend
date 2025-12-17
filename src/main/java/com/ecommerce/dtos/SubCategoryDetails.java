@@ -11,6 +11,7 @@ public class SubCategoryDetails {
 	private String subCategoryDescription;
 	
 	private String categoryDescription;
+	
 
 	public int getSubCategoryId() {
 		return subCategoryId;
@@ -52,6 +53,7 @@ public class SubCategoryDetails {
 		this.categoryDescription = categoryDescription;
 	}
 
+	
 	public SubCategoryDetails(int subCategoryId, String subCategoryName, String categoryName,
 			String subCategoryDescription, String categoryDescription) {
 		super();
@@ -60,6 +62,7 @@ public class SubCategoryDetails {
 		this.categoryName = categoryName;
 		this.subCategoryDescription = subCategoryDescription;
 		this.categoryDescription = categoryDescription;
+		
 	}
 
 	public SubCategoryDetails() {

@@ -66,7 +66,7 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 			Brands brand = brandsRepository.findById(product.getBrandId()).orElse(null);
 			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
 			List<Reviews> allReviews = reviewsRepository.findByProductId(product.getProductId());
-			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
+			if (seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE) || seller.getSellerStatusEnum().equals(SellerStatus.INACTIVE)) {
 				AllProducts newProduct = new AllProducts();
 				newProduct.setProductId(product.getProductId());
 				newProduct.setActualPrice(product.getActualPrice());
@@ -140,6 +140,7 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 			categories.setCategoryId(category.getCategoryId());
 			categories.setCategoryName(category.getCategoryName());
 			categories.setCategoryDescription(category.getCategoryDescription());
+			categories.setCategoryImage(category.getCategoryImage());
 			listOfCategories.add(categories);
 		}
 
@@ -186,6 +187,7 @@ public class PublicEndPointsServiceImplementation implements PublicEndPointsServ
 			brand.setBrandId(brands.getBrandId());
 			brand.setBrandName(brands.getBrandName());
 			brand.setBrandDescription(brands.getBrandDescription());
+			brand.setBrandImage(brands.getBrandImage());
 			listOfAllBrands.add(brand);
 		}
 
