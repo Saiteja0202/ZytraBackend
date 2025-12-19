@@ -11,4 +11,5 @@ public interface OrderService {
 	ResponseEntity<String> initiateOrder(int userId, String token);
 	ResponseEntity<String> orderPayment(int userId,int orderId, String token, Payments payments);
 	ResponseEntity<?> getOrderDetails(int userId, int orderId, String token);
+	ResponseEntity<?> getOrdersDetails(int userId, String token);
 }

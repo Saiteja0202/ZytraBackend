@@ -428,185 +428,139 @@ public class OrderServiceImplementation implements OrderService {
 	    Users user = usersRepository.findByUserId(userId).orElse(null);
 	    Order order = orderRepository.findById(orderId).orElse(null);
 
-	    if (user == null) {
+	    if (user == null)
 	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-	    }
 
-	    if (!jwtUtil.validateToken(token)) {
+	    if (!jwtUtil.validateToken(token))
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-	    }
 
 	    Long tokenUserId = jwtUtil.extractUserId(token);
-	    if (tokenUserId == null || tokenUserId != userId) {
-	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized!");
-	    }
-	    
-	    List<Cart> allCarts = cartRepository.findByUserId(userId);
-	    
-	    
-	    
+	    if (tokenUserId == null || tokenUserId != userId)
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized");
 
 	    Payments orderPayments = paymentsRepository.findByOrderId(orderId).orElse(null);
-	    
-	  
-	    
+
+	    /* ===================== PAY LATER FLOW ===================== */
+	    if (orderPayments != null &&
+	        orderPayments.getPaymentStatus() == PaymentStatus.PENDING &&
+	        orderPayments.getPaymentType() == PaymentType.PAYONDELIVERY &&
+	        (payments.getPaymentType() == PaymentType.CARD ||
+	         payments.getPaymentType() == PaymentType.UPI ||
+	         payments.getPaymentType() == PaymentType.CASH)) {
+
+	        // Update Payments table
+	        orderPayments.setPaymentType(payments.getPaymentType());
+	        orderPayments.setPaymentStatus(PaymentStatus.PAID);
+	        orderPayments.setTransactionId(generateTransactionId());
+	        paymentsRepository.save(orderPayments);
+
+	        // 🔥 UPDATE ORDER ITEMS PAYMENT DETAILS
+	        List<OrderItems> orderItems =
+	                orderItemsRepository.findByOrderId(orderId);
+
+	        for (OrderItems oi : orderItems) {
+	            oi.setPaymentStatus(PaymentStatus.PAID);
+	            oi.setPaymentType(payments.getPaymentType());
+	            orderItemsRepository.save(oi);
+	        }
+
+	        return ResponseEntity.ok("Payment completed successfully");
+	    }
+
+
+	    /* ===================== INITIAL ORDER PLACEMENT ===================== */
+
+	    List<Cart> allCarts = cartRepository.findByUserId(userId);
+	    if (allCarts.isEmpty())
+	        return ResponseEntity.badRequest().body("Cart is empty");
+
 	    if (orderPayments == null) {
 	        orderPayments = new Payments();
 	        orderPayments.setOrderId(orderId);
-	        orderPayments.setPaymentStatus(PaymentStatus.PENDING);
 	        orderPayments.setPaymentType(payments.getPaymentType());
-	        orderPayments.setTransactionId(generateTransactionId());
-	        paymentsRepository.save(orderPayments);
 	    }
-	    
-	    if(orderPayments.getPaymentStatus().equals(PaymentStatus.PAID))
-	    {
-	    	return ResponseEntity.badRequest().body("Payement is already done");
-	    }
+
+	    PaymentStatus finalStatus =
+	            payments.getPaymentType() == PaymentType.PAYONDELIVERY
+	                    ? PaymentStatus.PENDING
+	                    : PaymentStatus.PAID;
+
+	    orderPayments.setPaymentStatus(finalStatus);
+	    orderPayments.setTransactionId(generateTransactionId());
+	    paymentsRepository.save(orderPayments);
 
 	    Shipping shipping = shippingRepository.findByOrderId(orderId).orElse(null);
 	    if (shipping == null) {
 	        shipping = new Shipping();
 	        shipping.setOrderId(orderId);
 	        shipping.setShippingStatus(ShippingStatus.PROCESSING);
-	        shipping.setAddress(order != null ? order.getAddress() : ""); 
+	        shipping.setAddress(order.getAddress());
 	        shipping.setTrackingNumber(generateTransactionId());
-	        if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-	            shipping.setArrivingDate(LocalDate.now().plusDays(2));
-	        } else {
-	            shipping.setArrivingDate(LocalDate.now().plusDays(7));
-	        }
+	        shipping.setArrivingDate(
+	                user.getMemberShipStatus() == MemberShipStatus.PRIME
+	                        ? LocalDate.now().plusDays(2)
+	                        : LocalDate.now().plusDays(7)
+	        );
 	        shippingRepository.save(shipping);
 	    }
 
-	    String transactionId = generateTransactionId();
-	    String trackingNumber = generateTransactionId();
+	    for (Cart cart : allCarts) {
 
+	        Inventory inventory = inventoryRepository
+	                .findById(cart.getProductId())
+	                .orElseThrow(() -> new RuntimeException("Product unavailable"));
 
-	    if (shipping.getShippingStatus().equals(ShippingStatus.OUT_FOR_DELIVERY)
-	            && orderPayments.getPaymentStatus().equals(PaymentStatus.PENDING)) {
+	        if (cart.getProductQuantity() > inventory.getStockQuantity())
+	            return ResponseEntity.badRequest().body("Insufficient stock");
 
-	        orderPayments.setPaymentStatus(PaymentStatus.PAID);
-	        orderPayments.setTransactionId(transactionId);
-	        paymentsRepository.save(orderPayments);
+	        inventory.setStockQuantity(
+	                inventory.getStockQuantity() - cart.getProductQuantity());
+	        inventoryRepository.save(inventory);
 
-	        shipping.setShippingStatus(ShippingStatus.DELIVERED);
-	        shippingRepository.save(shipping);
-
-	        updateOrder(userId, orderId, orderPayments.getPaymentId(), shipping.getShippingId());
-	        return ResponseEntity.ok("Order Delivered with Transaction ID: " + transactionId);
+	        saveOrderItemFromCart(userId, cart, order, shipping, orderPayments);
 	    }
 
+	    cartRepository.deleteAll(allCarts);
 
-	    if (payments.getPaymentType().equals(PaymentType.CARD) || payments.getPaymentType().equals(PaymentType.UPI)) {
-	        orderPayments.setPaymentStatus(PaymentStatus.PAID);
-	        for(Cart cart : allCarts) {
-		    	if(orderItemsRepository.existsByCartId(cart.getCartId()))
-		    	{
-		    		return ResponseEntity.badRequest().body("Cart already exists");
-		    	}
-		    	OrderItems newOrderItems = new OrderItems();
-		    	newOrderItems.setPaymentStatus(orderPayments.getPaymentStatus());
-		    	orderItemsRepository.save(newOrderItems);
-		    	
-		    	Inventory inventory = inventoryRepository.findById(cart.getProductId()).orElse(null);
-		    	if(cart.getProductQuantity() >= inventory.getStockQuantity())
-		    	{
-		    		inventory.setStockQuantity(inventory.getStockQuantity() - cart.getProductQuantity());
-		    		inventoryRepository.save(inventory);
-		    	}
-		    	else {
-		    		return ResponseEntity.badRequest().body("Product is not available");
-		    	}
-		    	
-		    }
-	    } else {
-	        orderPayments.setPaymentStatus(PaymentStatus.PENDING);
-	        for(Cart cart : allCarts) {
-		    	
-		    	Inventory inventory = inventoryRepository.findById(cart.getProductId()).orElse(null);
-		    	if(cart.getProductQuantity() >= inventory.getStockQuantity())
-		    	{
-		    		inventory.setStockQuantity(inventory.getStockQuantity() - cart.getProductQuantity());
-		    		inventoryRepository.save(inventory);
-		    	}
-		    	else {
-		    		return ResponseEntity.badRequest().body("Product is not available");
-		    	}
-	        }
-	        
-	    }
-	    
-	    
+	    updateOrder(userId, orderId,
+	            orderPayments.getPaymentId(),
+	            shipping.getShippingId());
 
-	    orderPayments.setTransactionId(transactionId);
-	    paymentsRepository.save(orderPayments);
-
-	    shipping.setShippingStatus(ShippingStatus.PROCESSING);
-	    shipping.setAddress(order != null ? order.getAddress() : "");
-	    shipping.setTrackingNumber(trackingNumber);
-	    shipping.setOrderId(orderId);
-
-	    if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-	        shipping.setArrivingDate(LocalDate.now().plusDays(1));
-	    } else {
-	        shipping.setArrivingDate(LocalDate.now().plusDays(7));
-	    }
-	    shippingRepository.save(shipping);
-
-	  
-
-	    List<Cart> listOfCart = cartRepository.findByUserId(userId);
-	    if (listOfCart != null && !listOfCart.isEmpty()) {
-	        for (Cart cart : listOfCart) {
-	            cartRepository.delete(cart);
-	        }
-	    }
-
-	    updateOrder(userId, orderId, orderPayments.getPaymentId(), shipping.getShippingId());
-
-	    List<OrderItems> listOfOrderItems = orderItemsRepository.findByUserId(userId);
-		for(OrderItems orderItems : listOfOrderItems)
-		{
-			if(orderItems.getPaymentStatus().equals(PaymentStatus.PENDING))
-			{
-				orderItems.setPaymentStatus(orderPayments.getPaymentStatus());
-				orderItemsRepository.save(orderItems);
-			}
-		}
-	    
-	    for(Cart cart : allCarts) {
-	    	if(orderItemsRepository.existsByCartId(cart.getCartId()))
-	    	{
-	    		return ResponseEntity.badRequest().body("Cart Item already exists");	
-	    	}
-	    	OrderItems newOrderItems = new OrderItems();
-	    	newOrderItems.setUserId(userId);
-	    	newOrderItems.setBrandName(cart.getBrandName());
-	    	newOrderItems.setCartId(cart.getCartId());
-	    	newOrderItems.setCategoryName(cart.getCategoryName());
-	    	newOrderItems.setColor(cart.getColor());
-	    	newOrderItems.setImage(cart.getImage());
-	    	newOrderItems.setOrderStatus(order.getOrderStatus());
-	    	newOrderItems.setPaymentType(orderPayments.getPaymentType());
-	    	newOrderItems.setProductDescription(cart.getProductDescription());
-	    	newOrderItems.setProductId(cart.getProductId());
-	    	newOrderItems.setProductName(cart.getProductName());
-	    	newOrderItems.setProductQuantity(cart.getProductQuantity());
-	    	newOrderItems.setSellerName(cart.getSellerName());
-	    	newOrderItems.setShippingStatus(shipping.getShippingStatus());
-	    	newOrderItems.setSize(cart.getSize());
-	    	newOrderItems.setStockQuantity(cart.getStockQuantity());
-	    	newOrderItems.setSubCategoryName(cart.getSubCategoryName());
-	    	newOrderItems.setTotalPrice(cart.getTotalPrice());
-	    	newOrderItems.setOrderDate(order.getOrderDate());
-	    	newOrderItems.setPaymentStatus(orderPayments.getPaymentStatus());
-	    	orderItemsRepository.save(newOrderItems);
-	    }
-	    
-	    
-	    return ResponseEntity.ok("Order Placed with Transaction ID: " + transactionId);
+	    return ResponseEntity.ok(
+	            finalStatus == PaymentStatus.PENDING
+	                    ? "Order placed. Pay on delivery"
+	                    : "Payment successful. Order placed"
+	    );
 	}
+
+
+
+	private void saveOrderItemFromCart(int userId, Cart cart, Order order, Shipping shipping, Payments payments) {
+	    OrderItems oi = new OrderItems();
+	    oi.setUserId(userId);
+	    oi.setCartId(cart.getCartId());
+	    oi.setProductId(cart.getProductId());
+	    oi.setBrandName(cart.getBrandName());
+	    oi.setCategoryName(cart.getCategoryName());
+	    oi.setColor(cart.getColor());
+	    oi.setTotalPrice(cart.getTotalPrice());
+	    oi.setImage(cart.getImage());
+	    oi.setProductDescription(cart.getProductDescription());
+	    oi.setProductName(cart.getProductName());
+	    oi.setSellerName(cart.getSellerName());
+	    oi.setSize(cart.getSize());
+	    oi.setSubCategoryName(cart.getSubCategoryName());
+	    oi.setStockQuantity(cart.getStockQuantity());
+	    oi.setProductQuantity(cart.getProductQuantity());
+	    oi.setOrderStatus(OrderStatus.CONFIRMED);
+	    oi.setShippingStatus(shipping.getShippingStatus());
+	    oi.setPaymentStatus(payments.getPaymentStatus());
+	    oi.setPaymentType(payments.getPaymentType());
+	    oi.setOrderDate(LocalDate.now());
+	    oi.setOrderId(order.getOrderId());
+	    orderItemsRepository.save(oi);
+	}
+
 
 
 	private void updateOrder(int userId, int orderId, int paymentId, int shippingId) {
@@ -790,5 +744,86 @@ public class OrderServiceImplementation implements OrderService {
 			}
 		}
 	}
+	
+	@Override
+	public ResponseEntity<?> getOrdersDetails(int userId, String token) {
+	    Users user = usersRepository.findByUserId(userId).orElse(null);
+
+	    if (user == null) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+	    }
+
+	    if (!jwtUtil.validateToken(token)) {
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+	    }
+
+	    Long tokenUserId = jwtUtil.extractUserId(token);
+	    if (tokenUserId == null || tokenUserId != userId) {
+	        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized!");
+	    }
+	 
+	    List<OrderItems> allOrderItems = orderItemsRepository.findByUserId(userId);
+
+	    Map<Integer, List<OrderItems>> groupedByOrder = allOrderItems.stream()
+	            .collect(Collectors.groupingBy(OrderItems::getOrderId));
+
+	    List<Map<String, Object>> responseList = new ArrayList<>();
+
+	    for (Map.Entry<Integer, List<OrderItems>> entry : groupedByOrder.entrySet()) {
+	        Integer orderId = entry.getKey();
+	        List<OrderItems> items = entry.getValue();
+
+	        Map<String, Object> orderMap = new HashMap<>();
+	        orderMap.put("orderId", orderId);
+
+	        // Use orderDate from the first item (all items in the same order should have same date)
+	        LocalDate orderDate = items.isEmpty() ? null : items.get(0).getOrderDate();
+	        orderMap.put("orderDate", orderDate);
+
+	        // Group items by payment type
+	        List<Map<String, Object>> typeGroups = new ArrayList<>();
+	        Map<PaymentType, List<OrderItems>> itemsByPaymentType = items.stream()
+	                .collect(Collectors.groupingBy(OrderItems::getPaymentType));
+
+	        for (Map.Entry<PaymentType, List<OrderItems>> typeEntry : itemsByPaymentType.entrySet()) {
+	            PaymentType paymentType = typeEntry.getKey();
+	            List<OrderItems> typeItems = typeEntry.getValue();
+
+	            Map<String, Object> typeGroup = new HashMap<>();
+	            typeGroup.put("paymentType", paymentType);
+
+	            // Group by payment status
+	            Map<PaymentStatus, List<OrderItems>> itemsByStatus = typeItems.stream()
+	                    .collect(Collectors.groupingBy(OrderItems::getPaymentStatus));
+
+	            List<Map<String, Object>> statusGroups = new ArrayList<>();
+	            for (Map.Entry<PaymentStatus, List<OrderItems>> statusEntry : itemsByStatus.entrySet()) {
+	                PaymentStatus paymentStatus = statusEntry.getKey();
+	                List<OrderItems> statusItems = statusEntry.getValue();
+
+	                long totalPrice = statusItems.stream()
+	                        .mapToLong(i -> i.getTotalPrice() * i.getProductQuantity())
+	                        .sum();
+
+	                Map<String, Object> statusMap = new HashMap<>();
+	                statusMap.put("paymentStatus", paymentStatus);
+	                statusMap.put("orderItems", statusItems);
+	                statusMap.put("totalPrice", totalPrice);
+
+	                statusGroups.add(statusMap);
+	            }
+
+	            typeGroup.put("groupsByPaymentStatus", statusGroups);
+	            typeGroups.add(typeGroup);
+	        }
+
+	        orderMap.put("groupsByPaymentType", typeGroups);
+	        responseList.add(orderMap);
+	    }
+
+	    return ResponseEntity.ok(responseList);
+	}
+
+
 
 }
