@@ -71,5 +71,12 @@ public class OrdersController {
 		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
 		return orderService.getOrderDetails(userId,orderId,token);
 	}
+	@GetMapping("/get-orders/{userId}")
+	public ResponseEntity<?> getOrdersDetails(@PathVariable int userId,
+			@RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return orderService.getOrdersDetails(userId,token);
+	}
 }
 

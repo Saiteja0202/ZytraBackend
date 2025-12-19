@@ -4,6 +4,7 @@ public enum PaymentType {
 	
 	CARD,
 	UPI,
-	PAYONDELIVERY
+	PAYONDELIVERY,
+	CASH
 	
 }

@@ -82,6 +82,7 @@ public class OrderItems {
 	
 	private LocalDate orderDate;
 
+	private int orderId;
 	
 	public LocalDate getOrderDate() {
 		return orderDate;
@@ -89,6 +90,14 @@ public class OrderItems {
 
 	public void setOrderDate(LocalDate orderDate) {
 		this.orderDate = orderDate;
+	}
+
+	public int getOrderId() {
+		return orderId;
+	}
+
+	public void setOrderId(int orderId) {
+		this.orderId = orderId;
 	}
 
 	public int getOrderItem() {
@@ -253,6 +262,8 @@ public class OrderItems {
 
 	
 
+	
+
 	public OrderItems(int orderItem, @NotNull(message = "Cart Id is required") int cartId,
 			@NotNull(message = "User Id is required") int userId,
 			@NotNull(message = "Product Id is required") int productId,
@@ -268,7 +279,8 @@ public class OrderItems {
 			@NotBlank(message = "Sub Category Name is required") String subCategoryName,
 			@NotNull(message = "Stock Quantity is required") int stockQuantity,
 			@NotNull(message = "Product Quantity is required") int productQuantity, OrderStatus orderStatus,
-			ShippingStatus shippingStatus, PaymentStatus paymentStatus, PaymentType paymentType, LocalDate orderDate) {
+			ShippingStatus shippingStatus, PaymentStatus paymentStatus, PaymentType paymentType, LocalDate orderDate,
+			int orderId) {
 		super();
 		this.orderItem = orderItem;
 		this.cartId = cartId;
@@ -291,6 +303,7 @@ public class OrderItems {
 		this.paymentStatus = paymentStatus;
 		this.paymentType = paymentType;
 		this.orderDate = orderDate;
+		this.orderId = orderId;
 	}
 
 	public OrderItems() {

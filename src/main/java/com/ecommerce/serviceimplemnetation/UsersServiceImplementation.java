@@ -423,6 +423,11 @@ public class UsersServiceImplementation implements UsersService {
 				newProduct.setEndDate(discount.getEndDate());
 				newProduct.setStockQuantity(inventory.getStockQuantity());
 				newProduct.setSellerStatus(seller.getSellerStatusEnum());
+				newProduct.setImageFrontView(product.getImageFrontView());
+				newProduct.setImageTopView(product.getImageTopView());
+				newProduct.setImageBottomView(product.getImageBottomView());
+				newProduct.setImageSideView(product.getImageSideView());
+				newProduct.setProductSubDescription(product.getProductSubDescription());
 				listOfAllProducts.add(newProduct);
 			}
 		}
