@@ -22,6 +22,7 @@ import com.ecommerce.entities.Cart;
 import com.ecommerce.entities.Categories;
 import com.ecommerce.entities.Discounts;
 import com.ecommerce.entities.Inventory;
+import com.ecommerce.entities.OrderItems;
 import com.ecommerce.entities.Products;
 import com.ecommerce.entities.Reviews;
 import com.ecommerce.entities.Seller;
@@ -35,6 +36,7 @@ import com.ecommerce.repository.CartRepository;
 import com.ecommerce.repository.CategoriesRepository;
 import com.ecommerce.repository.DiscountsRepository;
 import com.ecommerce.repository.InventoryRepository;
+import com.ecommerce.repository.OrderItemsRepository;
 import com.ecommerce.repository.ProductsRepository;
 import com.ecommerce.repository.ReviewsRepository;
 import com.ecommerce.repository.SellerRepository;
@@ -59,13 +61,14 @@ public class UsersServiceImplementation implements UsersService {
 	private final InventoryRepository inventoryRepository;
 	private final ReviewsRepository reviewsRepository;
 	private final CartRepository cartRepository;
+	private final OrderItemsRepository orderItemsRepository;
 
 	public UsersServiceImplementation(UsersRepository usersRepository, PasswordEncoder passwordEncoder,
 			SubCategoryRepository subCategoryRepository, JwtUtil jwtUtil, JavaMailSender javaMailSender,
 			CategoriesRepository categoriesRepository, BrandsRepository brandsRepository,
 			SellerRepository sellerRepository, DiscountsRepository discountsRepository,
 			ProductsRepository productsRepository, InventoryRepository inventoryRepository,
-			ReviewsRepository reviewsRepository,CartRepository cartRepository) {
+			ReviewsRepository reviewsRepository,CartRepository cartRepository,OrderItemsRepository orderItemsRepository) {
 		this.usersRepository = usersRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.jwtUtil = jwtUtil;
@@ -79,6 +82,7 @@ public class UsersServiceImplementation implements UsersService {
 		this.inventoryRepository = inventoryRepository;
 		this.reviewsRepository = reviewsRepository;
 		this.cartRepository=cartRepository;
+		this.orderItemsRepository=orderItemsRepository;
 	}
 
 	@Override
@@ -504,6 +508,16 @@ public class UsersServiceImplementation implements UsersService {
 			}
 		}
 
+		boolean hasPurchased =
+			    orderItemsRepository.existsByUserIdAndProductId(userId, productId);
+
+			if (!hasPurchased) {
+			    return ResponseEntity
+			        .badRequest()
+			        .body("You must purchase this product to review it");
+			}
+
+		
 		reviews.setUserId(userId);
 		reviews.setProductId(productId);
 		reviews.setCreatedAt(LocalDate.now());
@@ -532,10 +546,19 @@ public class UsersServiceImplementation implements UsersService {
 		
 		List<Reviews> allReviews = reviewsRepository.findByProductId(productId);
 		
-		if(allReviews == null)
+		if(allReviews.isEmpty())
 		{
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reviews not found");
 		}
+		boolean hasPurchased =
+			    orderItemsRepository.existsByUserIdAndProductId(userId, productId);
+
+			if (!hasPurchased) {
+			    return ResponseEntity
+			        .badRequest()
+			        .body("You cannot update this review");
+			}
+
 		
 		for(Reviews review : allReviews)
 		{
@@ -612,6 +635,27 @@ public class UsersServiceImplementation implements UsersService {
 		response.setCarts(listOfCart);
 		response.setTotalPrice(cartTotalPrice);
 		return ResponseEntity.ok(response);
+	}
+	
+	@Override
+	public ResponseEntity<?> getUserDetails(int userId, String token)
+	{
+		Users user = usersRepository.findByUserId(userId).orElse(null);
+
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+		}
+
+		if (!jwtUtil.validateToken(token)) {
+			return ResponseEntity.status(401).body("Invalid or expired token");
+		}
+
+		Long tokenUserId = jwtUtil.extractUserId(token);
+		if (tokenUserId == null || tokenUserId != userId) {
+			return ResponseEntity.status(403).body("You are not authorized !");
+		}
+		
+		return ResponseEntity.ok(user);
 	}
 
 }

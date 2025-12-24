@@ -121,5 +121,12 @@ public class UsersController {
 		return userService.getCart(userId, token);
 	}
 	
+	@GetMapping("/get-user-details/{userId}")
+	public ResponseEntity<?> getUserDetails(@PathVariable int userId,@RequestHeader("Authorization") String authHeader)
+	{
+		String token = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : authHeader;
+		return userService.getUserDetails(userId, token);
+	}
+	
 
 }

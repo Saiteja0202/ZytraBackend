@@ -97,171 +97,112 @@ public class OrderServiceImplementation implements OrderService {
 
 	@Override
 	public ResponseEntity<String> addToCart(int userId, int productId, String token) {
+	  
+	    Users user = usersRepository.findByUserId(userId).orElse(null);
+	    if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
 
-		Users user = usersRepository.findByUserId(userId).orElse(null);
+	 
+	    if (!jwtUtil.validateToken(token)) return ResponseEntity.status(401).body("Invalid or expired token");
+	    Long tokenUserId = jwtUtil.extractUserId(token);
+	    if (tokenUserId == null || tokenUserId != userId) return ResponseEntity.status(403).body("You are not authorized!");
 
-		if (user == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-		}
+	    Products product = productsRepository.findById(productId).orElse(null);
+	    if (product == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
 
-		if (!jwtUtil.validateToken(token)) {
-			return ResponseEntity.status(401).body("Invalid or expired token");
-		}
+	    Inventory inventory = inventoryRepository.findById(productId).orElse(null);
+	    if (inventory == null || inventory.getStockQuantity() <= 0) return ResponseEntity.badRequest().body("Product out of stock");
 
-		Long tokenUserId = jwtUtil.extractUserId(token);
-		if (tokenUserId == null || tokenUserId != userId) {
-			return ResponseEntity.status(403).body("You are not authorized !");
-		}
+	    Seller seller = sellerRepository.findById(product.getSellerId()).orElse(null);
+	    if (seller == null || seller.getSellerStatusEnum() != SellerStatus.ACTIVE) return ResponseEntity.badRequest().body("Seller inactive");
 
-		Products product = productsRepository.findById(productId).orElse(null);
+	 
+	    Cart cart = cartRepository.findByUserIdAndProductId(userId, productId);
 
-		if (product == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
-		}
-		Inventory inventory = inventoryRepository.findById(productId).orElse(null);
-		
-		if (cartRepository.existsByProductId(productId)) {
-			Cart cart = cartRepository.findByProductId(productId).orElse(null);
-			if(inventory.getStockQuantity() > 1)
-			{
-				if (cart.getProductQuantity() >= 1) {
-					cart.setProductQuantity(cart.getProductQuantity() + 1);
-					cartRepository.save(cart);
-				}
-			}
-		}
+	    if (cart != null) {
+	   
+	        if (cart.getProductQuantity() < inventory.getStockQuantity()) {
+	            cart.setProductQuantity(cart.getProductQuantity() + 1);
+	            cartRepository.save(cart);
+	            return ResponseEntity.ok("Product quantity updated in cart");
+	        } else {
+	            return ResponseEntity.badRequest().body("Not enough stock to add more");
+	        }
+	    }
 
-		else {
-			Categories category = categoriesRepository.findById(product.getCategoryId()).orElse(null);
-			SubCategory subCategory = subCategoryRepository.findById(product.getSubCategoryId()).orElse(null);
-			
-			Brands brand = brandsRepository.findById(product.getBrandId()).orElse(null);
-			Seller seller = sellerRepository.findById(product.getSellerId()).orElse(null);
-			Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
-			if (inventory.getStockQuantity() > 0 || seller.getSellerStatusEnum().equals(SellerStatus.ACTIVE)) {
-				Cart newCart = new Cart();
-				newCart.setProductId(product.getProductId());
-				newCart.setActualPrice(product.getActualPrice());
-				newCart.setBrandName(brand.getBrandName());
-				newCart.setCategoryName(category.getCategoryName());
-				newCart.setColor(product.getColor());
-				newCart.setImage(product.getImage());
-				newCart.setProductName(product.getProductName());
-				newCart.setProductDescription(product.getProductDescription());
-				newCart.setSellerName(seller.getSellerName());
-				newCart.setSize(product.getSize());
-				newCart.setSubCategoryName(subCategory.getSubCategoryName());
-				
-				String discountType = discount.getDiscountType();
-				switch (discountType) {
-				case "AMOUNT": {
-					int amount = discount.getDiscountValue();
-					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-						long totalPrice = product.getActualPrice() - amount;
-						long primeDiscountAmount = (totalPrice * 5) / 100;
-						newCart.setTotalPrice(totalPrice - primeDiscountAmount);
-					} else {
-						newCart.setTotalPrice(product.getActualPrice() - amount);
-					}
 
-					break;
-				}
-				case "PERCENTAGE": {
-					int percentage = discount.getDiscountValue();
-					long actualPrice = product.getActualPrice();
-					long discountAmount = (actualPrice * percentage) / 100;
-					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-						long totalPrice = actualPrice - discountAmount;
-						long primeDiscountAmount = (totalPrice * 5) / 100;
-						newCart.setTotalPrice(totalPrice - primeDiscountAmount);
-					} else {
-						newCart.setTotalPrice(actualPrice - discountAmount);
-					}
+	    Cart newCart = new Cart();
+	    newCart.setUserId(userId);
+	    newCart.setProductId(productId);
+	    newCart.setProductQuantity(1);
 
-					break;
-				}
-				case "FLAT": {
-					int flatAmount = discount.getDiscountValue();
 
-					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-						long totalPrice = flatAmount;
-						long primeDiscountAmount = (totalPrice * 5) / 100;
-						newCart.setTotalPrice(totalPrice - primeDiscountAmount);
-					} else {
-						newCart.setTotalPrice(flatAmount);
-					}
-					break;
-				}
-				default:
+	    newCart.setProductName(product.getProductName());
+	    newCart.setActualPrice(product.getActualPrice());
+	    newCart.setBrandName(brandsRepository.findById(product.getBrandId()).map(Brands::getBrandName).orElse(""));
+	    newCart.setCategoryName(categoriesRepository.findById(product.getCategoryId()).map(Categories::getCategoryName).orElse(""));
+	    newCart.setSubCategoryName(subCategoryRepository.findById(product.getSubCategoryId()).map(SubCategory::getSubCategoryName).orElse(""));
+	    newCart.setSellerName(seller.getSellerName());
+	    newCart.setColor(product.getColor());
+	    newCart.setSize(product.getSize());
+	    newCart.setImage(product.getImage());
+	    newCart.setProductDescription(product.getProductDescription());
+	    Discounts discount = discountsRepository.findById(product.getDiscountId()).orElse(null);
+	    long totalPrice = product.getActualPrice();
 
-					if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
-						long totalPrice = product.getActualPrice();
-						long primeDiscountAmount = (totalPrice * 5) / 100;
-						newCart.setTotalPrice(totalPrice - primeDiscountAmount);
-					} else {
-						newCart.setTotalPrice(product.getActualPrice());
-					}
-				}
+	    if (discount != null) {
+	        switch (discount.getDiscountType()) {
+	            case "AMOUNT":
+	                totalPrice -= discount.getDiscountValue();
+	                break;
+	            case "PERCENTAGE":
+	                totalPrice -= (totalPrice * discount.getDiscountValue()) / 100;
+	                break;
+	            case "FLAT":
+	                totalPrice = discount.getDiscountValue();
+	                break;
+	            default:
+	                break;
+	        }
+	    }
 
-				newCart.setDiscountType(discount.getDiscountTypeEnum());
-				newCart.setDiscountValue(discount.getDiscountValue());
-				newCart.setStartDate(discount.getStartDate());
-				newCart.setEndDate(discount.getEndDate());
-				newCart.setStockQuantity(inventory.getStockQuantity());
-				newCart.setUserId(userId);
-				newCart.setProductId(productId);
-				newCart.setProductQuantity(1);
-				cartRepository.save(newCart);
-			}
-		}
+	    if (user.getMemberShipStatus().equals(MemberShipStatus.PRIME)) {
+	        totalPrice -= (totalPrice * 5) / 100; 
+	    }
 
-		return ResponseEntity.ok("Successfully added to cart");
+	    newCart.setTotalPrice(totalPrice);
+	    newCart.setDiscountType(discount != null ? discount.getDiscountTypeEnum() : null);
+	    newCart.setDiscountValue(discount != null ? discount.getDiscountValue() : 0);
+	    newCart.setStartDate(discount != null ? discount.getStartDate() : null);
+	    newCart.setEndDate(discount != null ? discount.getEndDate() : null);
+	    newCart.setStockQuantity(inventory.getStockQuantity());
+
+	    cartRepository.save(newCart);
+	    return ResponseEntity.ok("Product added to cart successfully");
 	}
+
 
 	@Override
 	public ResponseEntity<String> deleteFromCart(int userId, int productId, String token) {
+	    Users user = usersRepository.findByUserId(userId).orElse(null);
+	    if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
 
-		Users user = usersRepository.findByUserId(userId).orElse(null);
+	    if (!jwtUtil.validateToken(token)) return ResponseEntity.status(401).body("Invalid or expired token");
+	    Long tokenUserId = jwtUtil.extractUserId(token);
+	    if (tokenUserId == null || tokenUserId != userId) return ResponseEntity.status(403).body("You are not authorized!");
 
-		if (user == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-		}
+	    Cart cart = cartRepository.findByUserIdAndProductId(userId, productId);
+	    if (cart == null) return ResponseEntity.badRequest().body("Product not in cart");
 
-		if (!jwtUtil.validateToken(token)) {
-			return ResponseEntity.status(401).body("Invalid or expired token");
-		}
-
-		Long tokenUserId = jwtUtil.extractUserId(token);
-		if (tokenUserId == null || tokenUserId != userId) {
-			return ResponseEntity.status(403).body("You are not authorized !");
-		}
-		
-		Cart cart = cartRepository.findByProductId(productId).orElse(null);
-		
-		if(cart == null)
-		{
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
-		}
-		
-		if(cart.getProductQuantity() <= 0)
-		{
-			return ResponseEntity.badRequest().body("Unable to delete");
-		}
-		
-		if(cart.getProductQuantity() == 1)
-		{
-			cartRepository.delete(cart);
-		}
-		else {
-			if(cart.getProductQuantity() > 1)
-			{
-				cart.setProductQuantity(cart.getProductQuantity() - 1);
-				cartRepository.save(cart);
-			}
-		}
-		return ResponseEntity.ok("Successfully Deleted from cart");
+	    if (cart.getProductQuantity() > 1) {
+	        cart.setProductQuantity(cart.getProductQuantity() - 1);
+	        cartRepository.save(cart);
+	        return ResponseEntity.ok("Product quantity decreased in cart");
+	    } else {
+	        cartRepository.delete(cart);
+	        return ResponseEntity.ok("Product removed from cart");
+	    }
 	}
-	
+
 	@Override
 	public ResponseEntity<?> getProductDetails(int userId, int productId, String token)
 	{

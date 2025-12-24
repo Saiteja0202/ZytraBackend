@@ -13,6 +13,7 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, Integer>
 
 	List<OrderItems> findByOrderId(int orderId);
 	
-	
+	boolean existsByUserIdAndProductId(int userId, int productId);
+
 
 }
