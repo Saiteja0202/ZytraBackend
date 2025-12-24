@@ -9,10 +9,14 @@ import com.ecommerce.entities.Cart;
 
 public interface CartRepository extends JpaRepository<Cart, Integer> {
 
-	Optional<Cart> findByProductId(int productId);
+	List<Cart> findByProductId(int productId);
 	
 	boolean existsByProductId(int productId);
 	
+	boolean existsByUserId(int userId);
+	
 	List<Cart> findByUserId(int userId);
+
+	Cart findByUserIdAndProductId(int userId, int productId);
 	
 }

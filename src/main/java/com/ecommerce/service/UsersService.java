@@ -23,5 +23,6 @@ public interface UsersService {
 	ResponseEntity<String> reviewProduct(int userId, int productId,String token, Reviews reviews);
 	ResponseEntity<String> updateReview(int userId, int productId,String token, Reviews reviews);
 	ResponseEntity<?> getCart(int userId,String token);
+	ResponseEntity<?> getUserDetails(int userId, String token);
 	
 }
